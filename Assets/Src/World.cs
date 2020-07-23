@@ -1,0 +1,38 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class World : MonoBehaviour
+{
+    private Level m_level;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        m_level = gameObject.AddComponent(typeof(Level)) as Level;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetKeyUp(KeyCode.S))
+        {
+            m_level.Generate();
+        }
+        if (Input.GetKeyUp(KeyCode.R))
+        {
+            m_level.Clear(true);
+        }
+    }
+
+    public void Create()
+    {
+        m_level.Generate();
+    }
+
+    public Vector2 PlacePlayer()
+    {
+        Vector2 rndPos = m_level.GetRandomRoomPositon();
+        return rndPos;
+    }
+}
