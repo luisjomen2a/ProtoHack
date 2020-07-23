@@ -91,7 +91,6 @@ public class TerrainGrid
         return true;
     }
 
-    // TODO : No doors on borders.
     // TODO bis : no double doors.
     public void GenerateDoors()
     {
@@ -149,7 +148,6 @@ public class TerrainGrid
             {
                 if(m_floorGrid[i,j] == TerrainType.Wall 
                 || m_floorGrid[i, j] == TerrainType.Room )
-                //|| m_floorGrid[i, j] == TerrainType.DoorWay) TODO: this sucks.... need to fix it.
                 {
                     m_pathValues[i, j] = -1;
                 }

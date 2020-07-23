@@ -12,8 +12,7 @@ public class RnG
 }
 public class Dijkstra
 {
-    // TODO : Change this to multidimensional array to see if it optimizes something.
-    private List<Node> m_nodeGrid = new List<Node>();
+    private Node[,] m_nodeGrid;
     private List<Node> m_unexploredNodes = new List<Node>();
     /// <summary>
     /// Creates the grid of nodes and the unexplplored node list.
@@ -21,6 +20,7 @@ public class Dijkstra
     /// <param name="nodeValues">Contains the actual node values. Used for neighbour and obstacle extracting.</param>
     public Dijkstra(int[,] nodeValues)
     {
+        m_nodeGrid = new Node[nodeValues.GetLength(0), nodeValues.GetLength(1)];
         for (int i = 0; i < nodeValues.GetLength(0); i ++)
         {
             for (int j = 0; j < nodeValues.GetLength(1); j++)
@@ -36,7 +36,7 @@ public class Dijkstra
                         neighbours.Add(new Vector2(i+1, j));
                     if (j != 0) // Left.
                         neighbours.Add(new Vector2(i, j - 1));
-                    if (j != nodeValues.GetLength(1)) // Right.
+                    if (j != nodeValues.GetLength(1) - 1) // Right.
                         neighbours.Add(new Vector2(i, j + 1));
 
                     Node newNode = new Node(new Vector2(i, j), neighbours);
@@ -47,7 +47,7 @@ public class Dijkstra
                         m_unexploredNodes.Add(newNode);
                     }
 
-                    m_nodeGrid.Add(newNode);
+                    m_nodeGrid[i, j] = newNode;
                 }
             }
         }
@@ -69,7 +69,7 @@ public class Dijkstra
         startNode.weight = 0;
 
         // VERFICIATION REMOVE.
-        Node cacaNode = m_nodeGrid.Find(x => x.position.x == startPoint.x && x.position.y == startPoint.y);
+        Node cacaNode = m_nodeGrid[(int)startPoint.x, (int)startPoint.y];
 
         while(m_unexploredNodes.Count > 0)
         {
@@ -77,21 +77,15 @@ public class Dijkstra
             m_unexploredNodes.Sort((x, y) => x.weight.CompareTo(y.weight));
 
             Node current = m_unexploredNodes[0];    
-            /*
-            if (current.position == endPoint)
-                m_unexploredNodes.Clear();
-            else*/
             m_unexploredNodes.Remove(current);
 
             // Add to all our neighbours our current node as a parent only if our weight is small enough.
             foreach( Vector2 neighbour in current.neighbours)
             {
-                Node nghbNode = m_nodeGrid.Find(x => x.position.x == neighbour.x && x.position.y == neighbour.y);
+                Node nghbNode = m_nodeGrid[(int)neighbour.x, (int)neighbour.y];
                 if( m_unexploredNodes.Contains(nghbNode) && nghbNode.walkable )
                 {
-                    // TODO : distance calculation may not be necessary.
-                    float distance = Vector3.Distance(nghbNode.position, current.position);
-                    distance = current.weight + distance;
+                    float distance = current.weight + 1;
 
                     if (distance < nghbNode.weight)
                     {
@@ -99,8 +93,7 @@ public class Dijkstra
                         nghbNode.weight = distance;
                         if(nghbNode.position == endPoint)
                         {
-                            // TODO : the algo should "break" here, a good idea is to clear the unexpList.
-                            Debug.Log("WE GOT EM!!");
+                            m_unexploredNodes.Clear();
                         }
                         nghbNode.parentNode = new Vector2((int)current.position.x, (int)current.position.y);
                     }
@@ -110,14 +103,14 @@ public class Dijkstra
 
         // Return an actual comprehensible list of positions.
         List<Vector2> result = new List<Vector2>();
-        Node node = m_nodeGrid.Find(x => x.position.x == endPoint.x && x.position.y == endPoint.y);
+        Node node = m_nodeGrid[(int)endPoint.x, (int)endPoint.y];
 
         // While there's still previous node, we will continue.
-        while (m_nodeGrid.Contains(node))
+        while (node.parentNode.x != -1 && node.parentNode.y != -1)
         {
             result.Add(new Vector2(node.position.x, node.position.y));
 
-            node = m_nodeGrid.Find(x => x.position.x == node.parentNode.x && x.position.y == node.parentNode.y);
+            node = m_nodeGrid[(int)node.parentNode.x, (int)node.parentNode.y];
         }
 
         // Reverse the list so that it will be from start to end.
