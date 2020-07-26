@@ -3,18 +3,13 @@ using UnityEngine;
 
 public class Room
 {
-    public int width = 0;
-    public int height = 0;
-
-    public int abscissa = 0;
-    public int ordinate = 0;
+    public Rect roomRect;
 
     public List<DoorWay> doorWayList;
 
     public bool generated = false;
 
-    private int m_levelWidth;
-    private int m_levelHeight;
+    private Rect m_envelop;
 
 
     public enum DoorStatusType
@@ -32,25 +27,32 @@ public class Room
         public DoorWay(Vector2 pos, DoorStatusType stat) { position = pos; status = stat; connected = false; }
     }
 
-    public Room(int levelWidth, int levelHeight)
+    /// <summary>
+    /// Generates a room within a certain rectangle envelop.
+    /// </summary>
+    /// <param name="envelope">minimum and maximal area the room could occupy</param>
+    public Room(Rect envelope)
     {
-        this.m_levelWidth = levelWidth;
-        this.m_levelHeight = levelHeight;
+        this.m_envelop = envelope;
 
         doorWayList = new List<DoorWay>();
 
+        roomRect = new Rect();
+
         this.Generate();
     }
+
     /// <summary>
     /// Generates a room with random properteis (width, height, abscissa and ordinate).
-    /// The sole purpose of this method is to avoid doing all this in the constructor tu avoid useless object creation.
+    /// The sole
+    /// purpose of this method is to avoid doing all this in the constructor tu avoid useless object creation.
     /// </summary>
     public void Generate()
     {
-        width = Random.Range(3, 15);
-        height = Random.Range(3, 11);
-        abscissa = Random.Range(0, m_levelWidth);
-        ordinate = Random.Range(0, m_levelHeight);
+        roomRect.width = Random.Range(3, 15);
+        roomRect.height = Random.Range(3, 15);
+        roomRect.x = Random.Range(m_envelop.x, m_envelop.width);
+        roomRect.y = Random.Range(m_envelop.y, m_envelop.height);
     }
 
     public void AddDoor(Vector2 pos)
@@ -58,6 +60,6 @@ public class Room
         doorWayList.Add(new DoorWay(pos, DoorStatusType.Empty));
     }
 
-    public static string operator +(string s, Room a) => s + "\n x : " + a.abscissa + ", y : " + a.ordinate 
-                                                           + ", w : " + a.width + ", h : " + a.width;
+    public static string operator +(string s, Room a) => s + "\n x : " + a.roomRect.x + ", y : " + a.roomRect.y 
+                                                           + ", w : " + a.roomRect.width + ", h : " + a.roomRect.height;
 }

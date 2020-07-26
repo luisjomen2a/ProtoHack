@@ -111,8 +111,8 @@ public class Level : MonoBehaviour
         int rndOrd = -1;
         if (rndRoom != null)
         {
-            rndAbs = Random.Range(rndRoom.abscissa, rndRoom.abscissa + rndRoom.width);
-            rndOrd = Random.Range(rndRoom.ordinate, rndRoom.ordinate + rndRoom.height);
+            rndAbs = Random.Range((int)rndRoom.roomRect.x, (int)rndRoom.roomRect.x + (int)rndRoom.roomRect.width);
+            rndOrd = Random.Range((int)rndRoom.roomRect.x, (int)rndRoom.roomRect.y+ (int)rndRoom.roomRect.height);
         }
         return new Vector2(rndAbs, rndOrd);
     }

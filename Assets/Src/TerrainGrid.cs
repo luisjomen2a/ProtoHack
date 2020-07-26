@@ -52,7 +52,7 @@ public class TerrainGrid
     {
         while(!this.IsCompleted())
         {
-            Room roomToInsert = new Room(width, height);
+            Room roomToInsert = new Room(new Rect(0, 0, width, height));
             roomToInsert.Generate();
 
             // Brute force to find a suitable position and size until it fits.
@@ -68,16 +68,21 @@ public class TerrainGrid
     
     private bool RoomFits(Room room)
     {
+        int abscissa = (int)room.roomRect.x;
+        int ordinate = (int)room.roomRect.y;
+        int roomWidth = (int)room.roomRect.width;
+        int roomHeight = (int)room.roomRect.height;
+
         // Account for walls.
-        int minXWall = room.abscissa - 1 < 0 ? 0 : room.abscissa - 1;
-        int maxXWall = room.abscissa + room.width + 1 > width ? width : room.abscissa + room.width + 1;
-        int minYWall = room.ordinate - 1 < 0 ? 0 : room.ordinate - 1;
-        int maxYWall = room.ordinate + room.height + 1 > height ? height : room.ordinate + room.height + 1;
+        int minXWall = abscissa - 1 < 0 ? 0 : abscissa - 1;
+        int maxXWall = abscissa + roomWidth + 1 > width ? width : abscissa + roomWidth + 1;
+        int minYWall = ordinate - 1 < 0 ? 0 : ordinate - 1;
+        int maxYWall = ordinate + roomHeight + 1 > height ? height : ordinate + roomHeight + 1;
 
         // Test level boundries. 
         // Important : note that we restrict to stictly less or great, that is to ensure wall space.
-        if (room.abscissa > 0 && room.abscissa < width - room.width 
-            && room.ordinate > 0 && room.ordinate < height - room.height)
+        if (abscissa > 0 && abscissa < width - roomWidth 
+            && ordinate > 0 && ordinate < height - roomHeight)
         {
             for (int i = minXWall; i < maxXWall; i++) // Test the terrain that the room would contain.
                 for (int j = minYWall; j < maxYWall; j++)
@@ -96,8 +101,13 @@ public class TerrainGrid
     {
         foreach (Room room in m_roomList)
         {
+            int abscissa = (int)room.roomRect.x;
+            int ordinate = (int)room.roomRect.y;
+            int roomWidth = (int)room.roomRect.width;
+            int roomHeight = (int)room.roomRect.height;
+
             // At maximum the room's walls are made 20% of doors.
-            int nbMaxDoors = Defines.s_MAX_DOOR_PRC * (room.width * 2 + room.height * 2) / 100;
+            int nbMaxDoors = Defines.s_MAX_DOOR_PRC * (roomWidth * 2 + roomHeight * 2) / 100;
             int nbDoors = 0;
 
             // Leave the actual amount of doors to luck.
@@ -109,27 +119,27 @@ public class TerrainGrid
                 // Bottom and top.
                 if (direction == 0 || direction == 1)
                 {
-                    int ordOffset = direction == 0 ? -1 : room.height;
+                    int ordOffset = direction == 0 ? -1 : roomHeight;
                     //doors at the edge of the level are not allowed.
-                    if (room.ordinate + ordOffset != 0 && room.ordinate + ordOffset != height - 1) 
+                    if (ordinate + ordOffset != 0 && ordinate + ordOffset != height - 1) 
                     {
-                        int rndAbs = Random.Range(room.abscissa, room.abscissa + room.width);
-                        m_floorGrid[rndAbs, room.ordinate + ordOffset] = TerrainType.DoorWay;
-                        room.AddDoor(new Vector2(rndAbs, room.ordinate + ordOffset));
+                        int rndAbs = Random.Range(abscissa, abscissa + roomWidth);
+                        m_floorGrid[rndAbs, ordinate + ordOffset] = TerrainType.DoorWay;
+                        room.AddDoor(new Vector2(rndAbs, ordinate + ordOffset));
                         nbDoors++;
                     }
                 }
                 // Left and Right.
                 if (direction == 2 || direction == 3)
                 {
-                    int absOffset = direction == 2 ? -1 : room.width;
+                    int absOffset = direction == 2 ? -1 : roomWidth;
                     
                     //doors at the edge of the level are not allowed.
-                    if (room.abscissa + absOffset != 0 && room.abscissa + absOffset != width - 1)
+                    if (abscissa + absOffset != 0 && abscissa + absOffset != width - 1)
                     {
-                        int rndOrd = Random.Range(room.ordinate, room.ordinate + room.height);
-                        m_floorGrid[room.abscissa + absOffset, rndOrd] = TerrainType.DoorWay;
-                        room.AddDoor(new Vector2(room.abscissa + absOffset, rndOrd));
+                        int rndOrd = Random.Range(ordinate, ordinate + roomHeight);
+                        m_floorGrid[abscissa + absOffset, rndOrd] = TerrainType.DoorWay;
+                        room.AddDoor(new Vector2(abscissa + absOffset, rndOrd));
                         nbDoors++;
                     }
                 }
@@ -190,29 +200,34 @@ public class TerrainGrid
 
     private void FillGrid(Room room)
     {
+        int abscissa = (int)room.roomRect.x;
+        int ordinate = (int)room.roomRect.y;
+        int roomWidth = (int)room.roomRect.width;
+        int roomHeight = (int)room.roomRect.height;
+
         // Fill the whole space with walls and outer walls.
         // If we reach any side of the level the the outter wall is not necessary.
-        int minXWall = room.abscissa - 2 < 0 ? 0 : room.abscissa - 2;
-        int maxXWall = room.abscissa + room.width + 2 > width ? width : room.abscissa + room.width + 2;
-        int minYWall = room.ordinate - 2 < 0 ? 0 : room.ordinate - 2;
-        int maxYWall = room.ordinate + room.height + 2 > height ? height : room.ordinate + room.height + 2;
+        int minXWall = abscissa - 2 < 0 ? 0 : abscissa - 2;
+        int maxXWall = abscissa + roomWidth + 2 > width ? width : abscissa + roomWidth + 2;
+        int minYWall = ordinate - 2 < 0 ? 0 : ordinate - 2;
+        int maxYWall = ordinate + roomHeight + 2 > height ? height : ordinate + roomHeight + 2;
 
         for (int i = minXWall; i < maxXWall; i++)
             for (int j = minYWall; j < maxYWall; j++)
                 if(m_floorGrid[i, j] == TerrainType.None)
                    m_floorGrid[i, j] = TerrainType.WallOuter;
 
-        for (int i = room.abscissa - 1; i < room.abscissa + room.width + 1; i++)
-            for (int j = room.ordinate - 1; j < room.ordinate + room.height + 1; j++)
+        for (int i = abscissa - 1; i < abscissa + roomWidth + 1; i++)
+            for (int j = ordinate - 1; j < ordinate + roomHeight + 1; j++)
                 m_floorGrid[i, j] = TerrainType.Wall;
 
         // Fill the actual room volume.
-        for (int i = room.abscissa; i < room.abscissa + room.width; i++)
-            for (int j = room.ordinate; j < room.ordinate + room.height; j++)
+        for (int i = abscissa; i < abscissa + roomWidth; i++)
+            for (int j = ordinate; j < ordinate + roomHeight; j++)
                 m_floorGrid[i, j] = TerrainType.Room;
 
         // Space occupied in the whole level.
-        m_completion += (room.width + 1) * (room.height + 1);
+        m_completion += (roomWidth + 1) * (roomHeight + 1);
     }
 
     public bool IsCompleted()
