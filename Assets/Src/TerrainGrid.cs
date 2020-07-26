@@ -52,8 +52,9 @@ public class TerrainGrid
     {
         while(!this.IsCompleted())
         {
-            Room roomToInsert = new Room(new Rect(0, 0, width, height));
-            roomToInsert.Generate();
+            RoomFactory roomFactory = new RoomFactory(width, height);
+
+            Room roomToInsert = roomFactory.GenerateRoom();
 
             // Brute force to find a suitable position and size until it fits.
             while (!this.RoomFits(roomToInsert))
@@ -107,7 +108,7 @@ public class TerrainGrid
             int roomHeight = (int)room.roomRect.height;
 
             // At maximum the room's walls are made 20% of doors.
-            int nbMaxDoors = Defines.s_MAX_DOOR_PRC * (roomWidth * 2 + roomHeight * 2) / 100;
+            int nbMaxDoors = Defines.LevelDefines.s_MAX_DOOR_PRC * (roomWidth * 2 + roomHeight * 2) / 100;
             int nbDoors = 0;
 
             // Leave the actual amount of doors to luck.
@@ -232,7 +233,7 @@ public class TerrainGrid
 
     public bool IsCompleted()
     {
-        return m_completion > Defines.s_MAX_CAPACITY;
+        return m_completion > Defines.LevelDefines.s_MAX_CAPACITY;
     }
 
     public void Clear()

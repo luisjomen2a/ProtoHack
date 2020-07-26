@@ -49,10 +49,23 @@ public class Room
     /// </summary>
     public void Generate()
     {
-        roomRect.width = Random.Range(3, 15);
-        roomRect.height = Random.Range(3, 15);
+        // Allow for bigger rooms when possible.
+        if(m_envelop.width > Defines.LevelDefines.s_LARGE_ROOM_THRESHOLD)
+            roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH_OR_HEIGHT, 
+                                          Defines.LevelDefines.s_LARGE_ROOM_MAX_WIDTH);
+        else
+            roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH_OR_HEIGHT,
+                                          Defines.LevelDefines.s_ROOM_MAX_WIDTH);
+        roomRect.height = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH_OR_HEIGHT,
+                                       Defines.LevelDefines.s_ROOM_MAX_HEIGHT);
         roomRect.x = Random.Range(m_envelop.x, m_envelop.width);
         roomRect.y = Random.Range(m_envelop.y, m_envelop.height);
+
+        // Force the maximal area by minimizing the height.
+        if(roomRect.width * roomRect.height > Defines.LevelDefines.s_ROOM_MAX_AREA)
+        {
+            roomRect.height = Defines.LevelDefines.s_ROOM_MAX_AREA / roomRect.width;
+        }
     }
 
     public void AddDoor(Vector2 pos)
