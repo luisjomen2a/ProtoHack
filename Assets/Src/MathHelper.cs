@@ -68,9 +68,6 @@ public class Dijkstra
 
         startNode.weight = 0;
 
-        // VERFICIATION REMOVE.
-        Node cacaNode = m_nodeGrid[(int)startPoint.x, (int)startPoint.y];
-
         while(m_unexploredNodes.Count > 0)
         {
             // Sorting the unexplored nodes list by weight ensures we always choose the closes node to the start.

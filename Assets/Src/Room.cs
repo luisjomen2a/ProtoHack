@@ -9,8 +9,7 @@ public class Room
 
     public bool generated = false;
 
-    private Rect m_envelop;
-
+    public Rect envelop;
 
     public enum DoorStatusType
     {
@@ -33,7 +32,7 @@ public class Room
     /// <param name="envelope">minimum and maximal area the room could occupy</param>
     public Room(Rect envelope)
     {
-        this.m_envelop = envelope;
+        this.envelop = envelope;
 
         doorWayList = new List<DoorWay>();
 
@@ -50,21 +49,21 @@ public class Room
     public void Generate()
     {
         // Allow for bigger rooms when possible.
-        if(m_envelop.width > Defines.LevelDefines.s_LARGE_ROOM_THRESHOLD)
-            roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH_OR_HEIGHT, 
+        if(envelop.width > Defines.LevelDefines.s_LARGE_ROOM_THRESHOLD)
+            roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH, 
                                           Defines.LevelDefines.s_LARGE_ROOM_MAX_WIDTH);
         else
-            roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH_OR_HEIGHT,
+            roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH,
                                           Defines.LevelDefines.s_ROOM_MAX_WIDTH);
-        roomRect.height = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH_OR_HEIGHT,
+        roomRect.height = Random.Range(Defines.LevelDefines.s_ROOM_MIN_HEIGHT,
                                        Defines.LevelDefines.s_ROOM_MAX_HEIGHT);
-        roomRect.x = Random.Range(m_envelop.x, m_envelop.width);
-        roomRect.y = Random.Range(m_envelop.y, m_envelop.height);
+        roomRect.x = Random.Range((int)envelop.x, (int)envelop.width);
+        roomRect.y = Random.Range((int)envelop.y, (int)envelop.height);
 
         // Force the maximal area by minimizing the height.
         if(roomRect.width * roomRect.height > Defines.LevelDefines.s_ROOM_MAX_AREA)
         {
-            roomRect.height = Defines.LevelDefines.s_ROOM_MAX_AREA / roomRect.width;
+            roomRect.height = Defines.LevelDefines.s_ROOM_MAX_AREA / (int)roomRect.width;
         }
     }
 

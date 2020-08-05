@@ -18,8 +18,6 @@ public class TerrainGrid
     public int width;
     public int height;
 
-    private int m_completion;
-
     private TerrainType[,] m_floorGrid;
     private int[,] m_pathValues;
 
@@ -50,20 +48,34 @@ public class TerrainGrid
     /// </summary>
     public void GenerateRooms()
     {
-        while(!this.IsCompleted())
+        RoomFactory roomFactory = new RoomFactory(width,
+                                                  height);
+        while (!roomFactory.IsComplete() )
         {
-            RoomFactory roomFactory = new RoomFactory(width, height);
-
             Room roomToInsert = roomFactory.GenerateRoom();
 
+            int count = 0;
+
             // Brute force to find a suitable position and size until it fits.
-            while (!this.RoomFits(roomToInsert))
+            while (!RoomFits(roomToInsert) && count < 100)
+            {
                 roomToInsert.Generate();
 
-            // Fill the logical grid with the room's floors and walls. 
-            this.FillGrid(roomToInsert);
+                count++;
+            }
+            if(count < 25)
+            {
+                roomFactory.SaveRoom(roomToInsert);
 
-            m_roomList.Add(roomToInsert);  
+                // Fill the logical grid with the room's floors and walls. 
+                FillGrid(roomToInsert);
+
+                m_roomList.Add(roomToInsert);
+            }
+            else
+            {
+                roomFactory.RemoveEnvelop(roomToInsert.envelop);
+            }
         }
     }
     
@@ -75,15 +87,27 @@ public class TerrainGrid
         int roomHeight = (int)room.roomRect.height;
 
         // Account for walls.
-        int minXWall = abscissa - 1 < 0 ? 0 : abscissa - 1;
-        int maxXWall = abscissa + roomWidth + 1 > width ? width : abscissa + roomWidth + 1;
-        int minYWall = ordinate - 1 < 0 ? 0 : ordinate - 1;
-        int maxYWall = ordinate + roomHeight + 1 > height ? height : ordinate + roomHeight + 1;
+        int minXWall = abscissa - 1;
+        int maxXWall = abscissa + roomWidth + 1;
+        int minYWall = ordinate - 1;
+        int maxYWall = ordinate + roomHeight + 1;
 
-        // Test level boundries. 
+        // Differentiate borders of the level and borders of a non edge envelop.
+        int xBorder = 2 * Defines.LevelDefines.s_X_BORDER_SIZE ;
+        int yBorder = 2 * Defines.LevelDefines.s_Y_BORDER_SIZE;
+        if (room.envelop.x == 0 || room.envelop.x + room.envelop.width >= width - 1)
+        {
+            xBorder =  Defines.LevelDefines.s_X_BORDER_SIZE + 1;
+        }
+        if (room.envelop.y == 0 || room.envelop.y + room.envelop.height >= height - 1)
+        {
+            yBorder = Defines.LevelDefines.s_Y_BORDER_SIZE + 1;
+        }
+
+        // Test envelop boundries. 
         // Important : note that we restrict to stictly less or great, that is to ensure wall space.
-        if (abscissa > 0 && abscissa < width - roomWidth 
-            && ordinate > 0 && ordinate < height - roomHeight)
+        if (abscissa > xBorder && abscissa < width - roomWidth - xBorder &&
+            ordinate > yBorder && ordinate < height - roomHeight - yBorder)
         {
             for (int i = minXWall; i < maxXWall; i++) // Test the terrain that the room would contain.
                 for (int j = minYWall; j < maxYWall; j++)
@@ -226,14 +250,6 @@ public class TerrainGrid
         for (int i = abscissa; i < abscissa + roomWidth; i++)
             for (int j = ordinate; j < ordinate + roomHeight; j++)
                 m_floorGrid[i, j] = TerrainType.Room;
-
-        // Space occupied in the whole level.
-        m_completion += (roomWidth + 1) * (roomHeight + 1);
-    }
-
-    public bool IsCompleted()
-    {
-        return m_completion > Defines.LevelDefines.s_MAX_CAPACITY;
     }
 
     public void Clear()
@@ -245,7 +261,6 @@ public class TerrainGrid
             for (int j = 0; j < height; j++)
                 m_floorGrid[i, j] = TerrainType.None;
 
-        m_completion = 0;
         m_roomList.Clear();
     }
 
@@ -257,5 +272,17 @@ public class TerrainGrid
         else
             return null;
         return m_roomList[rndIndex];
+    }
+
+    public void Print()
+    {
+        string s = new string("Hello".ToCharArray());
+
+        for (int j = 0; j < m_floorGrid.GetLength(1); j++)
+        {
+            for (int i = 0; i < m_floorGrid.GetLength(0); i++)
+                s += " " + m_floorGrid[i, j];
+            s += '\n';
+        }
     }
 }

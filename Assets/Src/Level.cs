@@ -44,9 +44,10 @@ public class Level : MonoBehaviour
         m_logicGrid.GenerateDoors();
         m_logicGrid.GenerateCorridors();
 
-        this.Render();
-        
-        this.generated = true;
+        Render();
+
+        //m_logicGrid.Print();        
+        generated = true;
     }
 
     public void Clear(bool reset = false)
