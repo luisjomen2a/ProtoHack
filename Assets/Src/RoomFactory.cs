@@ -20,6 +20,9 @@ public class RoomFactory
             new Rect(0, 0, m_width, m_height)
         };
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
     /// <summary>
     /// Simply chooses a random envelop and assigns it to a Room.
     /// </summary>
@@ -35,6 +38,9 @@ public class RoomFactory
 
         return returnRoom;
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
     /// <summary>
     /// Creates a maximum of 4 envelops around the input room.
     /// </summary>
@@ -78,14 +84,22 @@ public class RoomFactory
             m_envelops.Add(newRect);
         }
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
     public bool IsComplete()
     {
         return m_envelops.Count <= 0;
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
     public bool RemoveEnvelop(Rect envelop)
     {
         return m_envelops.Remove(envelop);
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
 
 }
 

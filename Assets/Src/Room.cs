@@ -26,20 +26,24 @@ public class Room
         public DoorWay(Vector2 pos, DoorStatusType stat) { position = pos; status = stat; connected = false; }
     }
 
+    //-----------------------------------------------------------------------------------------------------------------
+
     /// <summary>
     /// Generates a room within a certain rectangle envelop.
     /// </summary>
     /// <param name="envelope">minimum and maximal area the room could occupy</param>
     public Room(Rect envelope)
     {
-        this.envelop = envelope;
+        envelop = envelope;
 
         doorWayList = new List<DoorWay>();
 
         roomRect = new Rect();
 
-        this.Generate();
+        Generate();
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
 
     /// <summary>
     /// Generates a room with random properteis (width, height, abscissa and ordinate).
@@ -67,11 +71,30 @@ public class Room
         }
     }
 
+    //-----------------------------------------------------------------------------------------------------------------
+
     public void AddDoor(Vector2 pos)
     {
         doorWayList.Add(new DoorWay(pos, DoorStatusType.Empty));
     }
 
-    public static string operator +(string s, Room a) => s + "\n x : " + a.roomRect.x + ", y : " + a.roomRect.y 
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public int CompareTo(Room compareRoom)
+    {
+        if (roomRect.x < compareRoom.roomRect.x)
+            return -1;
+        else if (roomRect.x > compareRoom.roomRect.x)
+            return 1;
+        else
+            return 0;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public static string operator +(string s, Room a) => s + "\n x : " + a.roomRect.x + ", y : " + a.roomRect.y
                                                            + ", w : " + a.roomRect.width + ", h : " + a.roomRect.height;
+
+    //-----------------------------------------------------------------------------------------------------------------
+
 }

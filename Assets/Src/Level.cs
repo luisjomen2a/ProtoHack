@@ -30,10 +30,7 @@ public class Level : MonoBehaviour
         m_logicGrid = new TerrainGrid(width, height);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-    }
+    //-----------------------------------------------------------------------------------------------------------------
 
     public void Generate()
     {
@@ -49,6 +46,8 @@ public class Level : MonoBehaviour
         //m_logicGrid.Print();        
         generated = true;
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
 
     public void Clear(bool reset = false)
     {
@@ -117,4 +116,7 @@ public class Level : MonoBehaviour
         }
         return new Vector2(rndAbs, rndOrd);
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
 }

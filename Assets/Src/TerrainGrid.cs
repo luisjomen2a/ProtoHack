@@ -18,8 +18,7 @@ public class TerrainGrid
     public int width;
     public int height;
 
-    private TerrainType[,] m_floorGrid;
-    private int[,] m_pathValues;
+    private TerrainType[,] m_terrainGrid;
 
     private List<Room> m_roomList;
     
@@ -28,19 +27,23 @@ public class TerrainGrid
         this.width = width;
         this.height = height;
 
-        m_floorGrid = new TerrainType[width, height];
+        m_terrainGrid = new TerrainType[width, height];
         m_roomList = new List<Room>();
 
         // The level is created empty (aka. all tiles have no type).
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
-                m_floorGrid[i, j] = TerrainType.None;
+                m_terrainGrid[i, j] = TerrainType.None;
     }
+    
+    //-----------------------------------------------------------------------------------------------------------------
 
     public TerrainType GetTerrainAt(int x, int y)
     {
-        return m_floorGrid[x, y];
+        return m_terrainGrid[x, y];
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
 
     /// <summary>
     /// Generates by brute force a random number of random sized rooms (floor and walls) 
@@ -78,7 +81,9 @@ public class TerrainGrid
             }
         }
     }
-    
+
+    //-----------------------------------------------------------------------------------------------------------------
+
     private bool RoomFits(Room room)
     {
         int abscissa = (int)room.roomRect.x;
@@ -111,7 +116,7 @@ public class TerrainGrid
         {
             for (int i = minXWall; i < maxXWall; i++) // Test the terrain that the room would contain.
                 for (int j = minYWall; j < maxYWall; j++)
-                    if (m_floorGrid[i, j] != TerrainType.None)
+                    if (m_terrainGrid[i, j] != TerrainType.None)
                         return false;
         }
         else
@@ -120,6 +125,8 @@ public class TerrainGrid
         }
         return true;
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
 
     // TODO bis : no double doors.
     public void GenerateDoors()
@@ -149,7 +156,7 @@ public class TerrainGrid
                     if (ordinate + ordOffset != 0 && ordinate + ordOffset != height - 1) 
                     {
                         int rndAbs = Random.Range(abscissa, abscissa + roomWidth);
-                        m_floorGrid[rndAbs, ordinate + ordOffset] = TerrainType.DoorWay;
+                        m_terrainGrid[rndAbs, ordinate + ordOffset] = TerrainType.DoorWay;
                         room.AddDoor(new Vector2(rndAbs, ordinate + ordOffset));
                         nbDoors++;
                     }
@@ -163,7 +170,7 @@ public class TerrainGrid
                     if (abscissa + absOffset != 0 && abscissa + absOffset != width - 1)
                     {
                         int rndOrd = Random.Range(ordinate, ordinate + roomHeight);
-                        m_floorGrid[abscissa + absOffset, rndOrd] = TerrainType.DoorWay;
+                        m_terrainGrid[abscissa + absOffset, rndOrd] = TerrainType.DoorWay;
                         room.AddDoor(new Vector2(abscissa + absOffset, rndOrd));
                         nbDoors++;
                     }
@@ -173,25 +180,11 @@ public class TerrainGrid
         }
     }
 
+    //-----------------------------------------------------------------------------------------------------------------
+
     public void GenerateCorridors()
     {
-        m_pathValues = new int[width, height];
-
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                if(m_floorGrid[i,j] == TerrainType.Wall 
-                || m_floorGrid[i, j] == TerrainType.Room )
-                {
-                    m_pathValues[i, j] = -1;
-                }
-                else
-                {
-                    m_pathValues[i, j] = 0;
-                }
-            }
-        }
+        m_roomList.Sort();    
 
         List<Room.DoorWay> tempDoorList = new List<Room.DoorWay>();
 
@@ -211,19 +204,52 @@ public class TerrainGrid
             Room.DoorWay doorWayEnd = tempDoorList[secondIndex];
             tempDoorList.RemoveAt(secondIndex);
 
-            Dijkstra dijkstra = new Dijkstra(m_pathValues);
+            Dijkstra dijkstra = new Dijkstra(createDijkstraMap());
 
             List<Vector2> res = dijkstra.Run(doorWayStart.position, doorWayEnd.position);
 
             for (int i = 0; i < res.Count(); i++)
             {
-                if (m_floorGrid[(int)res[i].x, (int)res[i].y] != TerrainType.DoorWay)
-                    m_floorGrid[(int)res[i].x, (int)res[i].y] = TerrainType.Corridor;
+                if (m_terrainGrid[(int)res[i].x, (int)res[i].y] != TerrainType.DoorWay)
+                    m_terrainGrid[(int)res[i].x, (int)res[i].y] = TerrainType.Corridor;
             }
         }
     }
 
-    private void FillGrid(Room room)
+    //-----------------------------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Fills a map using the terrain grid for the dijkstra algorith,
+    /// all obstacles (walls and rooms for corridor generation) are set to '-1', usable tiles are set to '0'.
+    /// </summary>
+    /// <returns>A map of obstacles for the dijkstra algorithm.</returns>
+    public int[,] createDijkstraMap()
+    {
+        int[,] m_pathValues;
+
+        m_pathValues = new int[width, height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                if (m_terrainGrid[i, j] == TerrainType.Wall
+                || m_terrainGrid[i, j] == TerrainType.Room)
+                {
+                    m_pathValues[i, j] = -1;
+                }
+                else
+                {
+                    m_pathValues[i, j] = 0;
+                }
+            }
+        }
+        return m_pathValues;
+    }
+
+//-----------------------------------------------------------------------------------------------------------------
+
+private void FillGrid(Room room)
     {
         int abscissa = (int)room.roomRect.x;
         int ordinate = (int)room.roomRect.y;
@@ -239,30 +265,34 @@ public class TerrainGrid
 
         for (int i = minXWall; i < maxXWall; i++)
             for (int j = minYWall; j < maxYWall; j++)
-                if(m_floorGrid[i, j] == TerrainType.None)
-                   m_floorGrid[i, j] = TerrainType.WallOuter;
+                if(m_terrainGrid[i, j] == TerrainType.None)
+                   m_terrainGrid[i, j] = TerrainType.WallOuter;
 
         for (int i = abscissa - 1; i < abscissa + roomWidth + 1; i++)
             for (int j = ordinate - 1; j < ordinate + roomHeight + 1; j++)
-                m_floorGrid[i, j] = TerrainType.Wall;
+                m_terrainGrid[i, j] = TerrainType.Wall;
 
         // Fill the actual room volume.
         for (int i = abscissa; i < abscissa + roomWidth; i++)
             for (int j = ordinate; j < ordinate + roomHeight; j++)
-                m_floorGrid[i, j] = TerrainType.Room;
+                m_terrainGrid[i, j] = TerrainType.Room;
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
 
     public void Clear()
     {
-        m_floorGrid = new TerrainType[width, height];
+        m_terrainGrid = new TerrainType[width, height];
 
         // The level is created empty (aka. all tiles have no type).
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
-                m_floorGrid[i, j] = TerrainType.None;
+                m_terrainGrid[i, j] = TerrainType.None;
 
         m_roomList.Clear();
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
 
     public Room RandomRoom()
     {
@@ -274,15 +304,20 @@ public class TerrainGrid
         return m_roomList[rndIndex];
     }
 
+    //-----------------------------------------------------------------------------------------------------------------
+
     public void Print()
     {
         string s = new string("Hello".ToCharArray());
 
-        for (int j = 0; j < m_floorGrid.GetLength(1); j++)
+        for (int j = 0; j < m_terrainGrid.GetLength(1); j++)
         {
-            for (int i = 0; i < m_floorGrid.GetLength(0); i++)
-                s += " " + m_floorGrid[i, j];
+            for (int i = 0; i < m_terrainGrid.GetLength(0); i++)
+                s += " " + m_terrainGrid[i, j];
             s += '\n';
         }
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
 }
