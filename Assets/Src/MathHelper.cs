@@ -102,7 +102,7 @@ public class Dijkstra
         List<Vector2> result = new List<Vector2>();
         Node node = m_nodeGrid[(int)endPoint.x, (int)endPoint.y];
 
-        // While there's still previous node, we will continue.
+        // While there's still a previous node, we continue.
         while (node.parentNode.x != -1 && node.parentNode.y != -1)
         {
             result.Add(new Vector2(node.position.x, node.position.y));

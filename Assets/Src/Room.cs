@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.Assertions;
 using UnityEngine;
 
-public class Room
+public class Room : System.IComparable<Room>
 {
     public Rect roomRect;
 
@@ -21,9 +22,8 @@ public class Room
     {
         public Vector2 position;
         public DoorStatusType status;
-        public bool connected;
 
-        public DoorWay(Vector2 pos, DoorStatusType stat) { position = pos; status = stat; connected = false; }
+        public DoorWay(Vector2 pos, DoorStatusType stat) { position = pos; status = stat; }
     }
 
     //-----------------------------------------------------------------------------------------------------------------
@@ -73,13 +73,6 @@ public class Room
 
     //-----------------------------------------------------------------------------------------------------------------
 
-    public void AddDoor(Vector2 pos)
-    {
-        doorWayList.Add(new DoorWay(pos, DoorStatusType.Empty));
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------
-
     public int CompareTo(Room compareRoom)
     {
         if (roomRect.x < compareRoom.roomRect.x)
@@ -88,6 +81,54 @@ public class Room
             return 1;
         else
             return 0;
+    }
+
+
+    //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Finds a position for a doorway at random.
+    /// </summary>
+    /// <returns>position of the random generated door.</returns>
+    public Vector2 FindDoorway()
+    {
+        // A door can be created in any of the four walls of this room.
+        int direction = Random.Range(0, 4);
+
+        int abscissa = (int)roomRect.x;
+        int ordinate = (int)roomRect.y;
+        int roomWidth = (int)roomRect.width;
+        int roomHeight = (int)roomRect.height;
+        Vector2 newDoor = new Vector2(-1, -1);
+
+        switch (direction)
+        {
+            case 0: //Botoom.
+                // Note that we place doorways on the room's wall, 
+                // So all coordinates need to be offsetted by one.
+                int rndAbs = Random.Range(abscissa, abscissa + roomWidth);
+                newDoor = new Vector2(rndAbs, ordinate - 1);
+                break;
+
+            case 1: //Top
+                rndAbs = Random.Range(abscissa, abscissa + roomWidth);
+                newDoor = new Vector2(rndAbs, ordinate + roomHeight);
+                break;
+            case 2: // Left
+                int rndOrd = Random.Range(ordinate, ordinate + roomHeight);
+                newDoor = new Vector2(abscissa - 1, rndOrd);
+                break;
+            case 3: // Right
+                rndOrd = Random.Range(ordinate, ordinate + roomHeight);
+                newDoor = new Vector2(abscissa + roomWidth, rndOrd);
+                break;
+        }       
+        return newDoor;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    public void AddDoorway(DoorWay doorWay)
+    {
+        doorWayList.Add(doorWay);
     }
 
     //-----------------------------------------------------------------------------------------------------------------

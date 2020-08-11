@@ -128,102 +128,96 @@ public class TerrainGrid
 
     //-----------------------------------------------------------------------------------------------------------------
 
-    // TODO bis : no double doors.
-    public void GenerateDoors()
-    {
-        foreach (Room room in m_roomList)
-        {
-            int abscissa = (int)room.roomRect.x;
-            int ordinate = (int)room.roomRect.y;
-            int roomWidth = (int)room.roomRect.width;
-            int roomHeight = (int)room.roomRect.height;
-
-            // At maximum the room's walls are made 20% of doors.
-            int nbMaxDoors = Defines.LevelDefines.s_MAX_DOOR_PRC * (roomWidth * 2 + roomHeight * 2) / 100;
-            int nbDoors = 0;
-
-            // Leave the actual amount of doors to luck.
-            while (RnG.PassTest(nbMaxDoors - nbDoors, nbMaxDoors))
-            {
-                // A door can be created in any of the four walls of this room.
-                int direction = Random.Range(0, 4);
-
-                // Bottom and top.
-                if (direction == 0 || direction == 1)
-                {
-                    int ordOffset = direction == 0 ? -1 : roomHeight;
-                    //doors at the edge of the level are not allowed.
-                    if (ordinate + ordOffset != 0 && ordinate + ordOffset != height - 1) 
-                    {
-                        int rndAbs = Random.Range(abscissa, abscissa + roomWidth);
-                        m_terrainGrid[rndAbs, ordinate + ordOffset] = TerrainType.DoorWay;
-                        room.AddDoor(new Vector2(rndAbs, ordinate + ordOffset));
-                        nbDoors++;
-                    }
-                }
-                // Left and Right.
-                if (direction == 2 || direction == 3)
-                {
-                    int absOffset = direction == 2 ? -1 : roomWidth;
-                    
-                    //doors at the edge of the level are not allowed.
-                    if (abscissa + absOffset != 0 && abscissa + absOffset != width - 1)
-                    {
-                        int rndOrd = Random.Range(ordinate, ordinate + roomHeight);
-                        m_terrainGrid[abscissa + absOffset, rndOrd] = TerrainType.DoorWay;
-                        room.AddDoor(new Vector2(abscissa + absOffset, rndOrd));
-                        nbDoors++;
-                    }
-                }
-
-            }
-        }
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------
-
     public void GenerateCorridors()
     {
-        m_roomList.Sort();    
+        // Saves which index is connected. At the end this should be filled with '0'.
+        int[] connectIndexes = new int[m_roomList.Count];
 
-        List<Room.DoorWay> tempDoorList = new List<Room.DoorWay>();
+        for (int i = 0; i < m_roomList.Count; i++)
+            connectIndexes[i] = i;
 
-        // TODO : check if modifications to the doorway are passed on through the room.
-        foreach (Room room in m_roomList)
+        // Sort rooms from left to right.
+        m_roomList.Sort();
+
+        // Connect all rooms from left to right...
+        for (int i = 0; i < m_roomList.Count -1 ; i++)
         {
-            tempDoorList.AddRange(room.doorWayList);
+            Join(m_roomList[i], m_roomList[i + 1]);
+            if (connectIndexes[i] < connectIndexes[i + 1]) // we mark both rooms as connected.
+                connectIndexes[i + 1] = connectIndexes[i];
+            else
+                connectIndexes[i] = connectIndexes[i + 1];
+            // ... But allow some randomness so that some other cases exist
+            if (RnG.PassTest(1, 10)) 
+                break;
         }
 
-        while (tempDoorList.Count > 1)
+        // Connect all rooms by skipping one each time.
+        for (int i = 0; i < m_roomList.Count - 2 ; i++)
         {
-            int firstIndex = Random.Range(0, tempDoorList.Count);
-            Room.DoorWay doorWayStart = tempDoorList[firstIndex];
-            tempDoorList.RemoveAt(firstIndex);
-
-            int secondIndex = Random.Range(0, tempDoorList.Count);
-            Room.DoorWay doorWayEnd = tempDoorList[secondIndex];
-            tempDoorList.RemoveAt(secondIndex);
-
-            Dijkstra dijkstra = new Dijkstra(createDijkstraMap());
-
-            List<Vector2> res = dijkstra.Run(doorWayStart.position, doorWayEnd.position);
-
-            for (int i = 0; i < res.Count(); i++)
+            if (connectIndexes[i] != connectIndexes[i + 2])
             {
-                if (m_terrainGrid[(int)res[i].x, (int)res[i].y] != TerrainType.DoorWay)
-                    m_terrainGrid[(int)res[i].x, (int)res[i].y] = TerrainType.Corridor;
+                Join(m_roomList[i], m_roomList[i + 2]);
+                if (connectIndexes[i] < connectIndexes[i + 2])
+                    connectIndexes[i + 2] = connectIndexes[i];
+                else
+                    connectIndexes[i] = connectIndexes[i + 2];
             }
+        }
+
+        // Generate random corridors, based no Nethack code.
+        for (int i = Random.Range(0,m_roomList.Count) ; i > 0; i--)
+        {
+            int idx1 = Random.Range(0, m_roomList.Count);
+            int idx2 = Random.Range(0, m_roomList.Count);
+            while(idx1 == idx2)
+                idx2 = Random.Range(0, m_roomList.Count);
+            Join(m_roomList[idx1], m_roomList[idx2]);
         }
     }
 
     //-----------------------------------------------------------------------------------------------------------------
 
     /// <summary>
+    /// Generates a door on each of the passed rooms and joins them with a corridor.
+    /// </summary>
+    /// <param name="room1">firt room to join.</param>
+    /// <param name="room2">second room to join.</param>
+    public void Join(Room room1, Room room2)
+    {
+        // Find a door for each room.
+        Vector2 doorWay1 = new Vector2();
+        Vector2 doorWay2 = new Vector2();
+
+        // We need each doorway to be placed on an empty wall.
+        do
+            doorWay1 = room1.FindDoorway();
+        while (!IsDoorOk(doorWay1));
+        do
+            doorWay2 = room2.FindDoorway();
+        while (!IsDoorOk(doorWay2));
+
+        room1.AddDoorway(new Room.DoorWay(doorWay1, Room.DoorStatusType.Empty));
+        room2.AddDoorway(new Room.DoorWay(doorWay2, Room.DoorStatusType.Empty));
+
+        FillGrid(doorWay1);
+        FillGrid(doorWay2);
+
+        // Call dijkstra algorithm with booth doors.
+        Dijkstra dijkstra = new Dijkstra(CreateDijkstraMap());
+
+        List<Vector2> res = dijkstra.Run(doorWay1, doorWay2);
+
+        FillGrid(res);
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
     /// Fills a map using the terrain grid for the dijkstra algorith,
     /// all obstacles (walls and rooms for corridor generation) are set to '-1', usable tiles are set to '0'.
     /// </summary>
     /// <returns>A map of obstacles for the dijkstra algorithm.</returns>
-    public int[,] createDijkstraMap()
+    public int[,] CreateDijkstraMap()
     {
         int[,] m_pathValues;
 
@@ -247,9 +241,64 @@ public class TerrainGrid
         return m_pathValues;
     }
 
-//-----------------------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Tests if given position is ok for a doorway.
+    /// aka. Not on an already existing door and not next to a door.
+    /// </summary>
+    /// <param name="doorWay">Position to test.</param>
+    /// <returns>Returns ture if the position is available.</returns>
+    public bool IsDoorOk(Vector2 doorWay)
+    {
+        // Current position is a free wall.
+        if(m_terrainGrid[(int)doorWay.x, (int)doorWay.y] == TerrainType.Wall)
+        {
+            // Either horizontal neighbours are walls or vertical neighbours are free walls.
+            // Note : Rooms are never generated on borders, not point in testing coordinates.
+            if (m_terrainGrid[(int)doorWay.x - 1, (int)doorWay.y] == TerrainType.Wall &&
+                m_terrainGrid[(int)doorWay.x + 1, (int)doorWay.y] == TerrainType.Wall)
+            {
+                return true;
+            }
+            if (m_terrainGrid[(int)doorWay.x, (int)doorWay.y + 1] == TerrainType.Wall &&
+                m_terrainGrid[(int)doorWay.x, (int)doorWay.y - 1] == TerrainType.Wall)
+            {
+                return true;
+            }
+        }
+        return false; 
+    }
 
-private void FillGrid(Room room)
+    //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Adds a corridor to the logical grid.
+    /// </summary>
+    /// <param name="corridor">List of positions representing the corridor to add.</param>
+    private void FillGrid(List<Vector2> corridors)
+    {
+        for (int i = 0; i < corridors.Count(); i++)
+        {
+            if (m_terrainGrid[(int)corridors[i].x, (int)corridors[i].y] != TerrainType.DoorWay)
+                m_terrainGrid[(int)corridors[i].x, (int)corridors[i].y] = TerrainType.Corridor;
+        }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Adds a door to the logical grid, that grid has to be placed on a wall.
+    /// </summary>
+    /// <param name="door">Position of the door .</param>
+    private void FillGrid(Vector2 door)
+    {
+        m_terrainGrid[(int)door.x, (int)door.y] = TerrainType.DoorWay;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Adds a room with to the logical terrain grid.
+    /// </summary>
+    /// <param name="room">room to ad</param>
+    private void FillGrid(Room room)
     {
         int abscissa = (int)room.roomRect.x;
         int ordinate = (int)room.roomRect.y;
@@ -265,8 +314,8 @@ private void FillGrid(Room room)
 
         for (int i = minXWall; i < maxXWall; i++)
             for (int j = minYWall; j < maxYWall; j++)
-                if(m_terrainGrid[i, j] == TerrainType.None)
-                   m_terrainGrid[i, j] = TerrainType.WallOuter;
+                if (m_terrainGrid[i, j] == TerrainType.None)
+                    m_terrainGrid[i, j] = TerrainType.WallOuter;
 
         for (int i = abscissa - 1; i < abscissa + roomWidth + 1; i++)
             for (int j = ordinate - 1; j < ordinate + roomHeight + 1; j++)

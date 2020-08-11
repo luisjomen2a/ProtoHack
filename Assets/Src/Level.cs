@@ -38,7 +38,6 @@ public class Level : MonoBehaviour
             this.Clear(true);
 
         m_logicGrid.GenerateRooms();
-        m_logicGrid.GenerateDoors();
         m_logicGrid.GenerateCorridors();
 
         Render();
@@ -76,7 +75,7 @@ public class Level : MonoBehaviour
             for (int j = 0; j < m_floor.GetLength(1); j++)
             {
                 if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Room ||
-                    m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay ||
+                    //m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay ||
                     m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Corridor
                     )
                 {
@@ -85,6 +84,15 @@ public class Level : MonoBehaviour
                     Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
 
                     Material roomMaterial = Resources.Load("Materials/RoomMaterial") as Material;
+                    renderer.material = roomMaterial;
+                }
+                else if(m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay)
+                {
+                    m_floor[i, j] = Instantiate(m_wallPrefab, new Vector3(i, 2, j), Quaternion.identity);
+
+                    Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
+
+                    Material roomMaterial = Resources.Load("Materials/TestMaterial") as Material;
                     renderer.material = roomMaterial;
                 }
                 else if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Wall)
