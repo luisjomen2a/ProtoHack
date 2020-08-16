@@ -28,19 +28,23 @@ public class PlayerMovement : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Keypad2))
         {
-            m_player.Place(m_player.position.x, m_player.position.y - 1);
+            if(m_world.WalkableAt((int)m_player.position.x, (int)m_player.position.y - 1))
+                m_player.Place(m_player.position.x, m_player.position.y - 1);
         }
         if (Input.GetKeyUp(KeyCode.Keypad8))
         {
-            m_player.Place(m_player.position.x, m_player.position.y + 1);
+            if (m_world.WalkableAt((int)m_player.position.x, (int)m_player.position.y + 1))
+                m_player.Place(m_player.position.x, m_player.position.y + 1);
         }
         if (Input.GetKeyUp(KeyCode.Keypad4))
         {
-            m_player.Place(m_player.position.x - 1, m_player.position.y);
+            if (m_world.WalkableAt((int)m_player.position.x - 1, (int)m_player.position.y))
+                m_player.Place(m_player.position.x - 1, m_player.position.y);
         }
         if (Input.GetKeyUp(KeyCode.Keypad6))
         {
-            m_player.Place(m_player.position.x + 1, m_player.position.y);
+            if (m_world.WalkableAt((int)m_player.position.x + 1, (int)m_player.position.y))
+                m_player.Place(m_player.position.x + 1, m_player.position.y);
         }
         m_camera.transform.position = new Vector3(m_player.position.x, 10, m_player.position.y);
         m_camera.transform.LookAt(new Vector3(m_player.position.x, 2, m_player.position.y));

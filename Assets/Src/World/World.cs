@@ -35,4 +35,13 @@ public class World : MonoBehaviour
         Vector2 rndPos = m_level.GetRandomRoomPositon();
         return rndPos;
     }
+
+    /// <summary>
+    /// Determines if the given coordinate is usable for walking or not.
+    /// </summary>
+    /// <returns>False if the given coordinate corresponds to a Wall, or stone or etc.. True if not.</returns>
+    public bool WalkableAt(int x, int j)
+    {
+        return m_level.WalkableAt(x, j);
+    }
 }

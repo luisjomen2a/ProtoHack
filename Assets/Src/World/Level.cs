@@ -146,4 +146,12 @@ public class Level : MonoBehaviour
 
     //-----------------------------------------------------------------------------------------------------------------
 
+    public bool WalkableAt(int x, int y)
+    {
+        return m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.Wall &&
+            m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.WallOuter &&
+            m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.None;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
 }
