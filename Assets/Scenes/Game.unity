@@ -434,6 +434,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_camera: {fileID: 947553527}
+  m_player: {fileID: 0}
   m_playerLight: {fileID: 1296019190}
 --- !u!65 &1946195516
 BoxCollider:

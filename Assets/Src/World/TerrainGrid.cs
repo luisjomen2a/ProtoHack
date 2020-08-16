@@ -12,6 +12,8 @@ public class TerrainGrid
         DoorWay,
         Corridor,
         Wall,
+        StairsUp,
+        StairsDown,
         WallOuter // "Imaginary" wall that ensure rooms won't be generated one next to the other
     }
 
@@ -186,8 +188,8 @@ public class TerrainGrid
     public void Join(Room room1, Room room2)
     {
         // Find a door for each room.
-        Vector2 doorWay1 = new Vector2();
-        Vector2 doorWay2 = new Vector2();
+        Vector2 doorWay1;
+        Vector2 doorWay2;
 
         // We need each doorway to be placed on an empty wall.
         do
@@ -267,6 +269,29 @@ public class TerrainGrid
             }
         }
         return false; 
+    }
+    
+    //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Generates a pair of staris, one goes down and the other goes up.
+    /// </summary>
+    public void GenerateStairs()
+    {
+        // Staircase up.
+        Room roomUp = RandomRoom();
+
+        int stairUpX = Random.Range(0, (int)roomUp.roomRect.width) + (int)roomUp.roomRect.x;
+        int stairUpY = Random.Range(0, (int)roomUp.roomRect.height) + (int)roomUp.roomRect.y;
+
+        // Staircase down.
+
+        Room roomDown = RandomRoom();
+
+        int stairDownX = Random.Range(0, (int)roomDown.roomRect.width) + (int)roomDown.roomRect.x;
+        int stairDownY = Random.Range(0, (int)roomDown.roomRect.height) + (int)roomDown.roomRect.y;
+
+        m_terrainGrid[stairUpX, stairUpY] = TerrainType.StairsUp;
+        m_terrainGrid[stairDownX, stairDownY] = TerrainType.StairsDown;
     }
 
     //-----------------------------------------------------------------------------------------------------------------

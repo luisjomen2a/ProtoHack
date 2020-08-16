@@ -10,7 +10,7 @@ public class Level : MonoBehaviour
     private GameObject[,] m_floor;
     private TerrainGrid m_logicGrid;
 
-    private GameObject m_roomPrefab;
+    private GameObject m_tilePrefab;
     private GameObject m_wallPrefab;
 
     public bool generated = false;
@@ -18,10 +18,10 @@ public class Level : MonoBehaviour
     // Start is called before the first frame update
     public void Start()
     {
-        m_roomPrefab = Resources.Load("Prefabs/tile") as GameObject;
+        m_tilePrefab = Resources.Load("Prefabs/tile") as GameObject;
         m_wallPrefab = Resources.Load("Prefabs/wall") as GameObject;
 
-        Renderer renderer = m_roomPrefab.GetComponent(typeof(Renderer)) as Renderer;
+        Renderer renderer = m_tilePrefab.GetComponent(typeof(Renderer)) as Renderer;
 
         Material roomMaterial = Resources.Load("Materials/NoneMaterial") as Material;
 
@@ -39,6 +39,7 @@ public class Level : MonoBehaviour
 
         m_logicGrid.GenerateRooms();
         m_logicGrid.GenerateCorridors();
+        m_logicGrid.GenerateStairs();
 
         Render();
 
@@ -75,15 +76,15 @@ public class Level : MonoBehaviour
             for (int j = 0; j < m_floor.GetLength(1); j++)
             {
                 if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Room ||
-                    //m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay ||
+                    m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay ||
                     m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Corridor
                     )
                 {
-                    m_floor[i, j] = Instantiate(m_roomPrefab, new Vector3(i, 0, j), Quaternion.identity);
+                    m_floor[i, j] = Instantiate(m_tilePrefab, new Vector3(i, 0, j), Quaternion.identity);
 
                     Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
 
-                    Material roomMaterial = Resources.Load("Materials/RoomMaterial") as Material;
+                    Material roomMaterial = Resources.Load("Materials/RoomMat") as Material;
                     renderer.material = roomMaterial;
                 }
                 else if(m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay)
@@ -92,7 +93,7 @@ public class Level : MonoBehaviour
 
                     Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
 
-                    Material roomMaterial = Resources.Load("Materials/TestMaterial") as Material;
+                    Material roomMaterial = Resources.Load("Materials/TestMat") as Material;
                     renderer.material = roomMaterial;
                 }
                 else if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Wall)
@@ -100,7 +101,23 @@ public class Level : MonoBehaviour
                     m_floor[i, j] = Instantiate(m_wallPrefab, new Vector3(i, 2, j), Quaternion.identity);
                     Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
 
-                    Material roomMaterial = Resources.Load("Materials/WallMaterial") as Material;
+                    Material roomMaterial = Resources.Load("Materials/WallMat") as Material;
+                    renderer.material = roomMaterial;
+                }
+                else if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.StairsDown)
+                {
+                    m_floor[i, j] = Instantiate(m_tilePrefab, new Vector3(i, 0, j), Quaternion.identity);
+                    Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
+
+                    Material roomMaterial = Resources.Load("Materials/StairsDownMat") as Material;
+                    renderer.material = roomMaterial;
+                }
+                else if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.StairsUp)
+                {
+                    m_floor[i, j] = Instantiate(m_tilePrefab, new Vector3(i, 0, j), Quaternion.identity);
+                    Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
+
+                    Material roomMaterial = Resources.Load("Materials/StairsUpMat") as Material;
                     renderer.material = roomMaterial;
                 }
                 else
@@ -119,8 +136,10 @@ public class Level : MonoBehaviour
         int rndOrd = -1;
         if (rndRoom != null)
         {
-            rndAbs = Random.Range((int)rndRoom.roomRect.x, (int)rndRoom.roomRect.x + (int)rndRoom.roomRect.width);
-            rndOrd = Random.Range((int)rndRoom.roomRect.x, (int)rndRoom.roomRect.y+ (int)rndRoom.roomRect.height);
+            rndAbs = Random.Range(0, (int)rndRoom.roomRect.width) + (int)rndRoom.roomRect.x;
+            rndOrd = Random.Range(0, (int)rndRoom.roomRect.height) + (int)rndRoom.roomRect.y;
+
+            Debug.Log("rndAbs " + rndAbs + " rndOrd " + rndOrd);
         }
         return new Vector2(rndAbs, rndOrd);
     }
