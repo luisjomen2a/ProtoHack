@@ -60,7 +60,6 @@ public class Level : MonoBehaviour
             for (int j = 0; j < m_floor.GetLength(1); j++)
             {
                 Destroy(m_floor[i, j].gameObject);
-                Destroy(m_floor[i, j]);
             }
         }
     }
@@ -75,9 +74,14 @@ public class Level : MonoBehaviour
         {
             for (int j = 0; j < m_floor.GetLength(1); j++)
             {
-                if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Room ||
-                    m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay ||
-                    m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Corridor
+                if(m_logicGrid.GetStatusAt(i, j) == TerrainGrid.StatusType.Unexplored || 
+                   m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.None)
+                {
+                    m_floor[i, j] = Instantiate(m_wallPrefab, new Vector3(i, 2, j), Quaternion.identity);
+                }
+                else if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Room ||
+                         m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay ||
+                         m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Corridor
                     )
                 {
                     m_floor[i, j] = Instantiate(m_tilePrefab, new Vector3(i, 0, j), Quaternion.identity);
@@ -120,10 +124,6 @@ public class Level : MonoBehaviour
                     Material roomMaterial = Resources.Load("Materials/StairsUpMat") as Material;
                     renderer.material = roomMaterial;
                 }
-                else
-                {
-                    m_floor[i, j] = Instantiate(m_wallPrefab, new Vector3(i, 2, j), Quaternion.identity);
-                }
             }
         }
     }
@@ -151,6 +151,15 @@ public class Level : MonoBehaviour
         return m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.Wall &&
             m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.WallOuter &&
             m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.None;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public void UpdateExplored(int x, int y)
+    {
+        m_logicGrid.UpdateExplored(x, y);
+        Clear();
+        Render();
     }
 
     //-----------------------------------------------------------------------------------------------------------------

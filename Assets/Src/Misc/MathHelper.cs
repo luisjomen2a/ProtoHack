@@ -116,8 +116,6 @@ public class Dijkstra
         double endTime = (Time.realtimeSinceStartup - startTime);
         Debug.Log("Compute time: " + endTime);
 
-        Debug.Log("Path completed!");
-
         return result;
     }
 }

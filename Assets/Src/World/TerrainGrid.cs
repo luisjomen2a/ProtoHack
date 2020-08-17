@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class TerrainGrid 
+public class TerrainGrid
 {
     public enum TerrainType
     {
@@ -17,32 +17,52 @@ public class TerrainGrid
         WallOuter // "Imaginary" wall that ensure rooms won't be generated one next to the other
     }
 
+    public enum StatusType
+    {
+        Unexplored,
+        Explored,
+        Lit
+    }
+
     public int width;
     public int height;
 
     private TerrainType[,] m_terrainGrid;
+    private StatusType[,] m_statusGrid;
 
     private List<Room> m_roomList;
-    
+
     public TerrainGrid(int width, int height)
     {
         this.width = width;
         this.height = height;
 
         m_terrainGrid = new TerrainType[width, height];
+        m_statusGrid = new StatusType[width, height];
         m_roomList = new List<Room>();
 
         // The level is created empty (aka. all tiles have no type).
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
                 m_terrainGrid[i, j] = TerrainType.None;
+
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+                m_statusGrid[i, j] = StatusType.Unexplored;
     }
-    
+
     //-----------------------------------------------------------------------------------------------------------------
 
     public TerrainType GetTerrainAt(int x, int y)
     {
         return m_terrainGrid[x, y];
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public StatusType GetStatusAt(int x, int y)
+    {
+        return m_statusGrid[x, y];
     }
 
     //-----------------------------------------------------------------------------------------------------------------
@@ -55,7 +75,7 @@ public class TerrainGrid
     {
         RoomFactory roomFactory = new RoomFactory(width,
                                                   height);
-        while (!roomFactory.IsComplete() )
+        while (!roomFactory.IsComplete())
         {
             Room roomToInsert = roomFactory.GenerateRoom();
 
@@ -68,7 +88,7 @@ public class TerrainGrid
 
                 count++;
             }
-            if(count < 25)
+            if (count < 25)
             {
                 roomFactory.SaveRoom(roomToInsert);
 
@@ -82,9 +102,14 @@ public class TerrainGrid
                 roomFactory.RemoveEnvelop(roomToInsert.envelop);
             }
         }
-    }
 
-    //-----------------------------------------------------------------------------------------------------------------
+        // Once generation is over, clean up the outer walls.
+        for (int i = 0; i < m_terrainGrid.GetLength(0); i++)
+            for (int j = 0; j < m_terrainGrid.GetLength(1); j++)
+                if (m_terrainGrid[i, j] == TerrainType.WallOuter)
+                    m_terrainGrid[i, j] = TerrainType.None;
+
+    }
 
     private bool RoomFits(Room room)
     {
@@ -100,11 +125,11 @@ public class TerrainGrid
         int maxYWall = ordinate + roomHeight + 1;
 
         // Differentiate borders of the level and borders of a non edge envelop.
-        int xBorder = 2 * Defines.LevelDefines.s_X_BORDER_SIZE ;
+        int xBorder = 2 * Defines.LevelDefines.s_X_BORDER_SIZE;
         int yBorder = 2 * Defines.LevelDefines.s_Y_BORDER_SIZE;
         if (room.envelop.x == 0 || room.envelop.x + room.envelop.width >= width - 1)
         {
-            xBorder =  Defines.LevelDefines.s_X_BORDER_SIZE + 1;
+            xBorder = Defines.LevelDefines.s_X_BORDER_SIZE + 1;
         }
         if (room.envelop.y == 0 || room.envelop.y + room.envelop.height >= height - 1)
         {
@@ -142,7 +167,7 @@ public class TerrainGrid
         m_roomList.Sort();
 
         // Connect all rooms from left to right...
-        for (int i = 0; i < m_roomList.Count -1 ; i++)
+        for (int i = 0; i < m_roomList.Count - 1; i++)
         {
             Join(m_roomList[i], m_roomList[i + 1]);
             if (connectIndexes[i] < connectIndexes[i + 1]) // we mark both rooms as connected.
@@ -150,12 +175,12 @@ public class TerrainGrid
             else
                 connectIndexes[i] = connectIndexes[i + 1];
             // ... But allow some randomness so that some other cases exist
-            if (RnG.PassTest(1, 10)) 
+            if (RnG.PassTest(1, 10))
                 break;
         }
 
         // Connect all rooms by skipping one each time.
-        for (int i = 0; i < m_roomList.Count - 2 ; i++)
+        for (int i = 0; i < m_roomList.Count - 2; i++)
         {
             if (connectIndexes[i] != connectIndexes[i + 2])
             {
@@ -168,11 +193,11 @@ public class TerrainGrid
         }
 
         // Generate random corridors, based no Nethack code.
-        for (int i = Random.Range(0,m_roomList.Count) ; i > 0; i--)
+        for (int i = Random.Range(0, m_roomList.Count); i > 0; i--)
         {
             int idx1 = Random.Range(0, m_roomList.Count);
             int idx2 = Random.Range(0, m_roomList.Count);
-            while(idx1 == idx2)
+            while (idx1 == idx2)
                 idx2 = Random.Range(0, m_roomList.Count);
             Join(m_roomList[idx1], m_roomList[idx2]);
         }
@@ -253,7 +278,7 @@ public class TerrainGrid
     public bool IsDoorOk(Vector2 doorWay)
     {
         // Current position is a free wall.
-        if(m_terrainGrid[(int)doorWay.x, (int)doorWay.y] == TerrainType.Wall)
+        if (m_terrainGrid[(int)doorWay.x, (int)doorWay.y] == TerrainType.Wall)
         {
             // Either horizontal neighbours are walls or vertical neighbours are free walls.
             // Note : Rooms are never generated on borders, not point in testing coordinates.
@@ -268,9 +293,9 @@ public class TerrainGrid
                 return true;
             }
         }
-        return false; 
+        return false;
     }
-    
+
     //-----------------------------------------------------------------------------------------------------------------
     /// <summary>
     /// Generates a pair of staris, one goes down and the other goes up.
@@ -380,15 +405,43 @@ public class TerrainGrid
 
     //-----------------------------------------------------------------------------------------------------------------
 
-    public void Print()
+    public void UpdateExplored(int x, int y)
     {
-        string s = new string("Hello".ToCharArray());
-
-        for (int j = 0; j < m_terrainGrid.GetLength(1); j++)
+        Vector3 origin = new Vector3(x, 0, y);
+        for (float abs = -1f; abs <= 1f; abs += 0.25f)
         {
-            for (int i = 0; i < m_terrainGrid.GetLength(0); i++)
-                s += " " + m_terrainGrid[i, j];
-            s += '\n';
+            for (float ord = -1f; ord <= 1f; ord += 0.25f)
+            {
+                // Not a desirable direction.
+                if (abs == 0 && ord == 0)
+                    continue;
+
+                Ray ray = new Ray(origin, new Vector3(abs, 0, ord));
+
+                TraceRay(ray);
+            }
+        }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public void TraceRay(Ray ray)
+    {
+        float distance = 0;
+        bool wallFound = false;
+
+        while (!wallFound)
+        {
+            Vector3 currentPoint = ray.GetPoint(distance);
+
+            if (m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.Wall ||
+               m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.None ||
+               m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.WallOuter)
+            {
+                wallFound = true;
+            }
+            m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Explored;
+            distance += 1f;
         }
     }
 

@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
         {
             Vector2 rndPos = m_world.PlacePlayer();
             m_player.Place(rndPos.x, rndPos.y);
-            m_camera.transform.position = new Vector3(rndPos.x, 10, rndPos.y - 2);
+            m_camera.transform.position = new Vector3(rndPos.x, 15, rndPos.y);
             m_camera.transform.LookAt(new Vector3(rndPos.x, 2, rndPos.y));
             m_camera.enabled = true;
             m_playerLight.transform.position = new Vector3(rndPos.x, 2, rndPos.y);

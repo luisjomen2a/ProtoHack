@@ -36,6 +36,7 @@ public class World : MonoBehaviour
         return rndPos;
     }
 
+    //-----------------------------------------------------------------------------------------------------------------
     /// <summary>
     /// Determines if the given coordinate is usable for walking or not.
     /// </summary>
@@ -43,5 +44,11 @@ public class World : MonoBehaviour
     public bool WalkableAt(int x, int j)
     {
         return m_level.WalkableAt(x, j);
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    public void UpdateExplored(int x, int j)
+    {
+        m_level.UpdateExplored(x, j);
     }
 }
