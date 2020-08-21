@@ -19,10 +19,6 @@ public class GameManager : MonoBehaviour
         m_player = gameObject.AddComponent(typeof(Player)) as Player;
         m_camera = gameObject.AddComponent(typeof(Camera)) as Camera;
         m_camera.enabled = false;
-
-
-        m_playerLight.range = 200;
-        m_playerLight.intensity = 2;
     }
 
     // Update is called once per frame
@@ -39,7 +35,6 @@ public class GameManager : MonoBehaviour
             m_camera.transform.position = new Vector3(rndPos.x, 15, rndPos.y);
             m_camera.transform.LookAt(new Vector3(rndPos.x, 2, rndPos.y));
             m_camera.enabled = true;
-            m_playerLight.transform.position = new Vector3(rndPos.x, 2, rndPos.y);
         }
     }
 }

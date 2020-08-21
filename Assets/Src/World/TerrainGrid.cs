@@ -407,6 +407,17 @@ public class TerrainGrid
 
     public void UpdateExplored(int x, int y)
     {
+        //Start by making everything that was lit to the player explored.
+        for (int i = 0; i < m_statusGrid.GetLength(0); i++)
+        {
+            for (int j = 0; j < m_statusGrid.GetLength(1); j++)
+            {
+                if (m_statusGrid[i, j] == StatusType.Lit)
+                    m_statusGrid[i, j] = StatusType.Explored;
+            }
+        }
+
+        // Then find which will be the tiles that are lit.
         Vector3 origin = new Vector3(x, 0, y);
         for (float abs = -1f; abs <= 1f; abs += 0.25f)
         {
@@ -429,6 +440,9 @@ public class TerrainGrid
     {
         float distance = 0;
         bool wallFound = false;
+        bool isCorridor = false;
+
+        int corridorCount = 0;
 
         while (!wallFound)
         {
@@ -440,7 +454,24 @@ public class TerrainGrid
             {
                 wallFound = true;
             }
-            m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Explored;
+            else if(m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.Corridor)
+            {
+                isCorridor = true;
+                corridorCount++;
+            }
+            else
+            {
+                corridorCount = 0;
+            }
+            // Corridors are only lit if they are next to the player
+            if (isCorridor  && distance < 2)
+                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
+            if (wallFound && corridorCount < 1)
+                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
+            if (!isCorridor && ! wallFound)
+                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
+            isCorridor = false;
+
             distance += 1f;
         }
     }

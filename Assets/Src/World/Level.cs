@@ -9,6 +9,7 @@ public class Level : MonoBehaviour
 
     private GameObject[,] m_floor;
     private TerrainGrid m_logicGrid;
+    public Light m_playerLight;
 
     private GameObject m_tilePrefab;
     private GameObject m_wallPrefab;
@@ -88,7 +89,11 @@ public class Level : MonoBehaviour
 
                     Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
 
-                    Material roomMaterial = Resources.Load("Materials/RoomMat") as Material;
+                    Material roomMaterial;
+                    if(m_logicGrid.GetStatusAt(i, j) == TerrainGrid.StatusType.Lit)
+                        roomMaterial = Resources.Load("Materials/RoomMatLit") as Material;
+                    else
+                        roomMaterial = Resources.Load("Materials/RoomMat") as Material;
                     renderer.material = roomMaterial;
                 }
                 else if(m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay)
