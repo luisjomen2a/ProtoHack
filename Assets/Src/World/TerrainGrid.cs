@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -407,6 +407,8 @@ public class TerrainGrid
 
     public void UpdateExplored(int x, int y)
     {
+        double startTime = Time.realtimeSinceStartup;
+
         //Start by making everything that was lit to the player explored.
         for (int i = 0; i < m_statusGrid.GetLength(0); i++)
         {
@@ -419,23 +421,20 @@ public class TerrainGrid
 
         // Then find which will be the tiles that are lit.
         Vector3 origin = new Vector3(x, 0, y);
-        for (float abs = -1f; abs <= 1f; abs += 0.25f)
+        for (float angle = 0; angle <= 360; angle += 5f)
         {
-            for (float ord = -1f; ord <= 1f; ord += 0.25f)
-            {
-                // Not a desirable direction.
-                if (abs == 0 && ord == 0)
-                    continue;
+            Vector3 lDirection = new Vector3(Mathf.Sin(Mathf.Deg2Rad * angle), 0, Mathf.Cos(Mathf.Deg2Rad * angle));
 
-                Ray ray = new Ray(origin, new Vector3(abs, 0, ord));
+            Ray ray = new Ray(origin, lDirection);
 
-                TraceRay(ray);
-            }
+            TraceRay(ray);
         }
+        double endTime = (Time.realtimeSinceStartup - startTime);
+        Debug.Log("UNEXP Compute time: " + endTime);
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-
+    // TODO : documentation + constant setting.
     public void TraceRay(Ray ray)
     {
         float distance = 0;
@@ -464,11 +463,11 @@ public class TerrainGrid
                 corridorCount = 0;
             }
             // Corridors are only lit if they are next to the player
-            if (isCorridor  && distance < 2)
+            if (isCorridor && distance < 2f)
                 m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
-            if (wallFound && corridorCount < 1)
+            if (wallFound && corridorCount < 1)// Light walls
                 m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
-            if (!isCorridor && ! wallFound)
+            if (!isCorridor && !wallFound) // lit surfaces case.
                 m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
             isCorridor = false;
 

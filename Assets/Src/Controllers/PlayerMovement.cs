@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,7 +10,7 @@ public class PlayerMovement : MonoBehaviour
 
     private Camera m_camera;
 
-    private bool m_hasPressed = false;
+    private bool m_isMoving = false;
 
     private int m_abs = 0;
     private int m_ord = 0;
@@ -33,64 +33,164 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (m_isMoving)
+            return;
+
         if (Input.GetKeyUp(KeyCode.Keypad1))
         {
-            m_abs = (int)m_player.position.x - 1;
-            m_ord = (int)m_player.position.y - 1;
-            m_hasPressed = true;
+            if(m_world.WalkableAt((int)m_player.position.x - 1, (int)m_player.position.y - 1))
+            {
+                StartCoroutine(MoveLeft());
+                StartCoroutine(MoveDown());
+                m_world.UpdateExplored((int)m_player.position.x - 1, (int)m_player.position.y - 1);
+                m_isMoving = true;
+            }
         }
         if (Input.GetKeyUp(KeyCode.Keypad2))
         {
-            m_abs = (int)m_player.position.x;
-            m_ord = (int)m_player.position.y - 1;
-            m_hasPressed = true;
+            if (m_world.WalkableAt((int)m_player.position.x, (int)m_player.position.y - 1))
+            {
+                StartCoroutine(MoveDown());
+                m_world.UpdateExplored((int)m_player.position.x, (int)m_player.position.y - 1);
+                m_isMoving = true;
+            }
         }
         if (Input.GetKeyUp(KeyCode.Keypad3))
         {
-            m_abs = (int)m_player.position.x + 1;
-            m_ord = (int)m_player.position.y - 1;
-            m_hasPressed = true;
+            if (m_world.WalkableAt((int)m_player.position.x + 1, (int)m_player.position.y - 1))
+            {
+                StartCoroutine(MoveRight());
+                StartCoroutine(MoveDown());
+                m_world.UpdateExplored((int)m_player.position.x + 1, (int)m_player.position.y - 1);
+                m_isMoving = true;
+            }
         }
         if (Input.GetKeyUp(KeyCode.Keypad4))
         {
-            m_abs = (int)m_player.position.x - 1;
-            m_ord = (int)m_player.position.y;
-            m_hasPressed = true;
+            if (m_world.WalkableAt((int)m_player.position.x - 1, (int)m_player.position.y))
+            {
+                StartCoroutine(MoveLeft());
+                m_world.UpdateExplored((int)m_player.position.x - 1, (int)m_player.position.y );
+                m_isMoving = true;
+            }
         }
         if (Input.GetKeyUp(KeyCode.Keypad6))
         {
-            m_abs = (int)m_player.position.x + 1;
-            m_ord = (int)m_player.position.y;
-            m_hasPressed = true;
+            if (m_world.WalkableAt((int)m_player.position.x + 1, (int)m_player.position.y))
+            {
+                StartCoroutine(MoveRight());
+                m_world.UpdateExplored((int)m_player.position.x + 1, (int)m_player.position.y);
+                m_isMoving = true;
+            }
         }
         if (Input.GetKeyUp(KeyCode.Keypad7))
         {
-            m_abs = (int)m_player.position.x - 1;
-            m_ord = (int)m_player.position.y + 1;
-            m_hasPressed = true;
+            if (m_world.WalkableAt((int)m_player.position.x - 1, (int)m_player.position.y + 1))
+            {
+                StartCoroutine(MoveLeft());
+                StartCoroutine(MoveUp());
+                m_world.UpdateExplored((int)m_player.position.x - 1, (int)m_player.position.y + 1);
+                m_isMoving = true;
+            }
         }
         if (Input.GetKeyUp(KeyCode.Keypad8))
         {
-            m_abs = (int)m_player.position.x;
-            m_ord = (int)m_player.position.y + 1;
-            m_hasPressed = true;
+            if (m_world.WalkableAt((int)m_player.position.x, (int)m_player.position.y + 1))
+            {
+                StartCoroutine(MoveUp());
+                m_world.UpdateExplored((int)m_player.position.x, (int)m_player.position.y + 1);
+                m_isMoving = true;
+            }
         }
         if (Input.GetKeyUp(KeyCode.Keypad9))
         {
-            m_abs = (int)m_player.position.x + 1;
-            m_ord = (int)m_player.position.y + 1;
-            m_hasPressed = true;
-        }
-        if (m_hasPressed)
-        {
-            if (m_world.WalkableAt(m_abs, m_ord))
+            if (m_world.WalkableAt((int)m_player.position.x + 1, (int)m_player.position.y + 1))
             {
-                m_player.Place(m_abs, m_ord);
-                m_camera.transform.position = new Vector3(m_player.position.x, m_cameraHeight, m_player.position.y);
-                m_camera.transform.LookAt(new Vector3(m_player.position.x, 2, m_player.position.y));
-                m_world.UpdateExplored((int)m_player.position.x, (int)m_player.position.y);
-                m_hasPressed = false;
+                StartCoroutine(MoveUp());
+                StartCoroutine(MoveRight());
+                m_world.UpdateExplored((int)m_player.position.x + 1, (int)m_player.position.y + 1);
+                m_isMoving = true;
             }
         }
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    IEnumerator MoveLeft()
+    {
+        float abs = m_player.position.x;
+        for (float i = abs; i > abs - 1; i -= 0.25f)
+        {
+            m_player.Place(i, m_player.position.y);
+            m_camera.transform.position = new Vector3(i, m_cameraHeight, m_player.position.y);
+            m_camera.transform.LookAt(new Vector3(i, 2, m_player.position.y));
+            yield return null;
+        }
+
+        m_player.Place(abs - 1, m_player.position.y);
+        m_camera.transform.position = new Vector3(abs - 1, m_cameraHeight, m_player.position.y);
+        m_camera.transform.LookAt(new Vector3(abs - 1, 2, m_player.position.y));
+
+        m_isMoving = false;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    IEnumerator MoveRight()
+    {
+        float abs = m_player.position.x;
+        for (float i = abs; i < abs + 1; i += 0.25f)
+        {
+            m_player.Place(i, m_player.position.y);
+            m_camera.transform.position = new Vector3(i, m_cameraHeight, m_player.position.y);
+            m_camera.transform.LookAt(new Vector3(i, 2, m_player.position.y));
+            yield return null;
+        }
+
+        m_player.Place(abs + 1, m_player.position.y);
+        m_camera.transform.position = new Vector3(abs + 1, m_cameraHeight, m_player.position.y);
+        m_camera.transform.LookAt(new Vector3(abs + 1, 2, m_player.position.y));
+        m_isMoving = false;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    IEnumerator MoveDown()
+    {
+        float ord = m_player.position.y;
+        for (float j = ord; j > ord - 1; j -= 0.25f)
+        {
+            m_player.Place(m_player.position.x, j);
+            m_camera.transform.position = new Vector3(m_player.position.x, m_cameraHeight, j);
+            m_camera.transform.LookAt(new Vector3(m_player.position.x, 2, j));
+            yield return null;
+        }
+
+        m_player.Place(m_player.position.x, ord - 1);
+        m_camera.transform.position = new Vector3(m_player.position.x, m_cameraHeight, ord - 1);
+        m_camera.transform.LookAt(new Vector3(m_player.position.x, 2, ord - 1));
+
+        m_isMoving = false;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    IEnumerator MoveUp()
+    {
+        float ord = m_player.position.y;
+        for (float j = ord; j < ord + 1; j += 0.25f)
+        {
+            m_player.Place(m_player.position.x, j);
+            m_camera.transform.position = new Vector3(m_player.position.x, m_cameraHeight, j);
+            m_camera.transform.LookAt(new Vector3(m_player.position.x, 2, j));
+            yield return null;
+        }
+
+        m_player.Place(m_player.position.x, ord + 1);
+        m_camera.transform.position = new Vector3(m_player.position.x, m_cameraHeight, ord + 1);
+        m_camera.transform.LookAt(new Vector3(m_player.position.x, 2, ord + 1));
+
+        m_isMoving = false;
+    }
+
 }

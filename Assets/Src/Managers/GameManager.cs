@@ -19,6 +19,8 @@ public class GameManager : MonoBehaviour
         m_player = gameObject.AddComponent(typeof(Player)) as Player;
         m_camera = gameObject.AddComponent(typeof(Camera)) as Camera;
         m_camera.enabled = false;
+
+        m_player.Generate();
     }
 
     // Update is called once per frame
