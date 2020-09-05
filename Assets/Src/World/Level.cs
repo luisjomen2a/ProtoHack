@@ -1,4 +1,4 @@
-using System.Collections; 
+﻿using System.Collections; 
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -40,6 +40,7 @@ public class Level : MonoBehaviour
 
         m_logicGrid.GenerateRooms();
         m_logicGrid.GenerateCorridors();
+        m_logicGrid.GenerateNiches();
         m_logicGrid.GenerateStairs();
 
         Render();
@@ -163,6 +164,15 @@ public class Level : MonoBehaviour
     public void UpdateExplored(int x, int y)
     {
         m_logicGrid.UpdateExplored(x, y);
+        Clear();
+        Render();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public void Reveal()
+    {
+        m_logicGrid.Reveal();
         Clear();
         Render();
     }

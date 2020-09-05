@@ -16,13 +16,11 @@ public class World : MonoBehaviour
     void Update()
     {
         if (Input.GetKeyUp(KeyCode.S))
-        {
             m_level.Generate();
-        }
         if (Input.GetKeyUp(KeyCode.R))
-        {
             m_level.Clear(true);
-        }
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.F))
+            m_level.Reveal();
     }
 
     public void Create()

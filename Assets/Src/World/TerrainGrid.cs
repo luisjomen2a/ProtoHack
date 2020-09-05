@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -202,7 +202,7 @@ public class TerrainGrid
             Join(m_roomList[idx1], m_roomList[idx2]);
         }
     }
-
+        
     //-----------------------------------------------------------------------------------------------------------------
 
     /// <summary>
@@ -266,6 +266,40 @@ public class TerrainGrid
             }
         }
         return m_pathValues;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Generates a number of niches (aka closets) equal up to the number of rooms plus one. 
+    /// </summary>
+    public void GenerateNiches()
+    {
+        int nbNiches = Random.Range(0, m_roomList.Count() + 1);
+
+        while (nbNiches > 0)
+        {
+            Vector2 doorWay;
+
+            // We need each doorway to be placed on an empty wall.
+            do
+                doorWay = RandomRoom().FindDoorway();
+            while (!IsDoorOk(doorWay));
+
+            m_terrainGrid[(int)doorWay.x, (int)doorWay.y] = TerrainType.DoorWay;
+
+            // Find which direction should the corridor be put in.
+            if ( m_terrainGrid[(int)doorWay.x - 1, (int)doorWay.y] == TerrainType.None )
+                m_terrainGrid[(int)doorWay.x - 1, (int)doorWay.y] = TerrainType.Corridor;
+            if (m_terrainGrid[(int)doorWay.x + 1, (int)doorWay.y] == TerrainType.None)
+                m_terrainGrid[(int)doorWay.x + 1, (int)doorWay.y] = TerrainType.Corridor;
+            if (m_terrainGrid[(int)doorWay.x, (int)doorWay.y - 1] == TerrainType.None)
+                m_terrainGrid[(int)doorWay.x, (int)doorWay.y - 1] = TerrainType.Corridor;
+            if (m_terrainGrid[(int)doorWay.x, (int)doorWay.y + 1] == TerrainType.None)
+                m_terrainGrid[(int)doorWay.x, (int)doorWay.y + 1] = TerrainType.Corridor;
+
+            nbNiches--;
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------
@@ -378,7 +412,9 @@ public class TerrainGrid
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-
+    /// <summary>
+    /// Resets the terrain grid and sets everthing to None. Also empties the list of rooms of this level.
+    /// </summary>
     public void Clear()
     {
         m_terrainGrid = new TerrainType[width, height];
@@ -392,7 +428,10 @@ public class TerrainGrid
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-
+    /// <summary>
+    /// Returns a random room.
+    /// </summary>
+    /// <returns>A random room or null if room list is empty.</returns>
     public Room RandomRoom()
     {
         int rndIndex;
@@ -473,6 +512,15 @@ public class TerrainGrid
 
             distance += 1f;
         }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public void Reveal()
+    {
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+                m_statusGrid[i, j] = StatusType.Explored;
     }
 
     //-----------------------------------------------------------------------------------------------------------------
