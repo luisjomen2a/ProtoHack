@@ -14,8 +14,11 @@ public class Room : System.IComparable<Room>
 
     public enum DoorStatusType
     {
-        Empty,
-        Created
+        Empty = 0,
+        Closed,
+        Open,
+        Locked,
+        Trapped
     }
 
     public struct DoorWay
@@ -126,16 +129,32 @@ public class Room : System.IComparable<Room>
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-    public void AddDoorway(DoorWay doorWay)
+    /// <summary>
+    /// Generates either a hidden door, closed door or a doorway. If a door is generated it is maked either locked or "open".
+    /// TODO : enter actual probabilties here.
+    /// </summary>
+    /// <param name="x">abscissa of the doorway.</param>
+    /// <param name="y">ordinate of the doorway.</param>
+    public void AddDoorway(Vector2 doorWay)
     {
-        doorWayList.Add(doorWay);
+        if(RnG.PassTest(1,3))
+        {
+            if(RnG.PassTest(1,5))
+                doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Open));
+            else if(RnG.PassTest(1, 6))
+                doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Locked));
+            else
+                doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Closed));
+            // Trapped doors would be here.
+        }
+        else
+            doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Open));
     }
 
     //-----------------------------------------------------------------------------------------------------------------
 
     public static string operator +(string s, Room a) => s + "\n x : " + a.roomRect.x + ", y : " + a.roomRect.y
                                                            + ", w : " + a.roomRect.width + ", h : " + a.roomRect.height;
-
     //-----------------------------------------------------------------------------------------------------------------
 
 }

@@ -224,8 +224,8 @@ public class TerrainGrid
             doorWay2 = room2.FindDoorway();
         while (!IsDoorOk(doorWay2));
 
-        room1.AddDoorway(new Room.DoorWay(doorWay1, Room.DoorStatusType.Empty));
-        room2.AddDoorway(new Room.DoorWay(doorWay2, Room.DoorStatusType.Empty));
+        room1.AddDoorway(doorWay1);
+        room2.AddDoorway(doorWay2);
 
         FillGrid(doorWay1);
         FillGrid(doorWay2);
@@ -280,12 +280,17 @@ public class TerrainGrid
         while (nbNiches > 0)
         {
             Vector2 doorWay;
+            Room room;
 
             // We need each doorway to be placed on an empty wall.
             do
-                doorWay = RandomRoom().FindDoorway();
+            {
+                room = RandomRoom();
+                doorWay = room.FindDoorway();
+            }
             while (!IsDoorOk(doorWay));
 
+            room.AddDoorway(doorWay);
             m_terrainGrid[(int)doorWay.x, (int)doorWay.y] = TerrainType.DoorWay;
 
             // Find which direction should the corridor be put in.
