@@ -38,5 +38,25 @@ public class GameManager : MonoBehaviour
             m_camera.transform.LookAt(new Vector3(rndPos.x, 2, rndPos.y));
             m_camera.enabled = true;
         }
+        // Get a FPS camera
+        // TODO : implement a switch fonction to go to overview aswell.
+        if (Input.GetKeyUp(KeyCode.F1))
+        {
+            m_camera.enabled = false;
+
+            // We try to find the FPS camera that is attached to the scene.
+            Camera[] allCams = FindObjectsOfType<Camera>();
+            Camera FPSCamera = null;
+
+            foreach (Camera cam in allCams)
+                if (cam.name == "FPSCamera")
+                    FPSCamera = cam;
+
+            if (FPSCamera)
+            {
+                Debug.Log("Ok mah man, here are the coords " + m_player.transform.position);
+                FPSCamera.transform.position = new Vector3(m_player.position.x, m_player.playerHeight, m_player.position.y);
+            }
+        }
     }
 }

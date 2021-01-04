@@ -12,9 +12,6 @@ public class PlayerMovement : MonoBehaviour
 
     private bool m_isMoving = false;
 
-    private int m_abs = 0;
-    private int m_ord = 0;
-
     private int m_cameraHeight = 15;
 
     // Start is called before the first frame update

@@ -65,6 +65,17 @@ public class TerrainGrid
         return m_statusGrid[x, y];
     }
 
+    public Room.DoorStatusType GetDoorwayStatusAt(int x, int y)
+    {
+        for (int i = 0; i < m_roomList.Count; i++)
+        {
+            if (m_roomList[i].GetDoorwayStatusAt(x, y) != Room.DoorStatusType.None)
+            {
+                return m_roomList[i].GetDoorwayStatusAt(x, y);
+            }
+        }
+        return Room.DoorStatusType.None;
+    }
     //-----------------------------------------------------------------------------------------------------------------
 
     /// <summary>
@@ -99,7 +110,7 @@ public class TerrainGrid
             }
             else
             {
-                roomFactory.RemoveEnvelop(roomToInsert.envelop);
+                roomFactory.RemoveEnvelop(roomToInsert.m_envelop);
             }
         }
 
@@ -113,10 +124,10 @@ public class TerrainGrid
 
     private bool RoomFits(Room room)
     {
-        int abscissa = (int)room.roomRect.x;
-        int ordinate = (int)room.roomRect.y;
-        int roomWidth = (int)room.roomRect.width;
-        int roomHeight = (int)room.roomRect.height;
+        int abscissa = (int)room.m_roomRect.x;
+        int ordinate = (int)room.m_roomRect.y;
+        int roomWidth = (int)room.m_roomRect.width;
+        int roomHeight = (int)room.m_roomRect.height;
 
         // Account for walls.
         int minXWall = abscissa - 1;
@@ -127,11 +138,11 @@ public class TerrainGrid
         // Differentiate borders of the level and borders of a non edge envelop.
         int xBorder = 2 * Defines.LevelDefines.s_X_BORDER_SIZE;
         int yBorder = 2 * Defines.LevelDefines.s_Y_BORDER_SIZE;
-        if (room.envelop.x == 0 || room.envelop.x + room.envelop.width >= width - 1)
+        if (room.m_envelop.x == 0 || room.m_envelop.x + room.m_envelop.width >= width - 1)
         {
             xBorder = Defines.LevelDefines.s_X_BORDER_SIZE + 1;
         }
-        if (room.envelop.y == 0 || room.envelop.y + room.envelop.height >= height - 1)
+        if (room.m_envelop.y == 0 || room.m_envelop.y + room.m_envelop.height >= height - 1)
         {
             yBorder = Defines.LevelDefines.s_Y_BORDER_SIZE + 1;
         }
@@ -344,15 +355,15 @@ public class TerrainGrid
         // Staircase up.
         Room roomUp = RandomRoom();
 
-        int stairUpX = Random.Range(0, (int)roomUp.roomRect.width) + (int)roomUp.roomRect.x;
-        int stairUpY = Random.Range(0, (int)roomUp.roomRect.height) + (int)roomUp.roomRect.y;
+        int stairUpX = Random.Range(0, (int)roomUp.m_roomRect.width) + (int)roomUp.m_roomRect.x;
+        int stairUpY = Random.Range(0, (int)roomUp.m_roomRect.height) + (int)roomUp.m_roomRect.y;
 
         // Staircase down.
 
         Room roomDown = RandomRoom();
 
-        int stairDownX = Random.Range(0, (int)roomDown.roomRect.width) + (int)roomDown.roomRect.x;
-        int stairDownY = Random.Range(0, (int)roomDown.roomRect.height) + (int)roomDown.roomRect.y;
+        int stairDownX = Random.Range(0, (int)roomDown.m_roomRect.width) + (int)roomDown.m_roomRect.x;
+        int stairDownY = Random.Range(0, (int)roomDown.m_roomRect.height) + (int)roomDown.m_roomRect.y;
 
         m_terrainGrid[stairUpX, stairUpY] = TerrainType.StairsUp;
         m_terrainGrid[stairDownX, stairDownY] = TerrainType.StairsDown;
@@ -389,10 +400,10 @@ public class TerrainGrid
     /// <param name="room">room to ad</param>
     private void FillGrid(Room room)
     {
-        int abscissa = (int)room.roomRect.x;
-        int ordinate = (int)room.roomRect.y;
-        int roomWidth = (int)room.roomRect.width;
-        int roomHeight = (int)room.roomRect.height;
+        int abscissa = (int)room.m_roomRect.x;
+        int ordinate = (int)room.m_roomRect.y;
+        int roomWidth = (int)room.m_roomRect.width;
+        int roomHeight = (int)room.m_roomRect.height;
 
         // Fill the whole space with walls and outer walls.
         // If we reach any side of the level the the outter wall is not necessary.
@@ -451,8 +462,6 @@ public class TerrainGrid
 
     public void UpdateExplored(int x, int y)
     {
-        double startTime = Time.realtimeSinceStartup;
-
         //Start by making everything that was lit to the player explored.
         for (int i = 0; i < m_statusGrid.GetLength(0); i++)
         {
@@ -473,8 +482,6 @@ public class TerrainGrid
 
             TraceRay(ray);
         }
-        double endTime = (Time.realtimeSinceStartup - startTime);
-        Debug.Log("UNEXP Compute time: " + endTime);
     }
 
     //-----------------------------------------------------------------------------------------------------------------

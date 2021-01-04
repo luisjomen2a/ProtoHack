@@ -13,6 +13,8 @@ public class Level : MonoBehaviour
 
     private GameObject m_tilePrefab;
     private GameObject m_wallPrefab;
+    private GameObject m_doorOpenPrefab;
+    private GameObject m_doorClosedPrefab;
 
     public bool generated = false;
 
@@ -21,12 +23,8 @@ public class Level : MonoBehaviour
     {
         m_tilePrefab = Resources.Load("Prefabs/tile") as GameObject;
         m_wallPrefab = Resources.Load("Prefabs/wall") as GameObject;
-
-        Renderer renderer = m_tilePrefab.GetComponent(typeof(Renderer)) as Renderer;
-
-        Material roomMaterial = Resources.Load("Materials/NoneMaterial") as Material;
-
-        renderer.material = roomMaterial;
+        m_doorOpenPrefab = Resources.Load("Prefabs/doorOpen") as GameObject;
+        m_doorClosedPrefab = Resources.Load("Prefabs/doorClosed") as GameObject;
 
         m_logicGrid = new TerrainGrid(width, height);
     }
@@ -67,6 +65,9 @@ public class Level : MonoBehaviour
     }
 
     //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// This Renders the whole level, adapting each gameObject to the type of terrain.
+    /// </summary>
     private void Render()
     {
         m_floor = new GameObject[width, height];
@@ -80,9 +81,12 @@ public class Level : MonoBehaviour
                    m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.None)
                 {
                     m_floor[i, j] = Instantiate(m_wallPrefab, new Vector3(i, 2, j), Quaternion.identity);
+                    Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
+
+                    Material roomMaterial = Resources.Load("Materials/NoneMat") as Material;
+                    renderer.material = roomMaterial;
                 }
                 else if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Room ||
-                         m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay ||
                          m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Corridor
                     )
                 {
@@ -99,12 +103,31 @@ public class Level : MonoBehaviour
                 }
                 else if(m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay)
                 {
-                    m_floor[i, j] = Instantiate(m_wallPrefab, new Vector3(i, 2, j), Quaternion.identity);
-
-                    Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
-
-                    Material roomMaterial = Resources.Load("Materials/TestMat") as Material;
-                    renderer.material = roomMaterial;
+                    
+                    Material roomMaterial;
+                    if (m_logicGrid.GetDoorwayStatusAt(i,j) == Room.DoorStatusType.Closed ||
+                       m_logicGrid.GetDoorwayStatusAt(i, j) == Room.DoorStatusType.Locked)
+                    {
+                        m_floor[i, j] = Instantiate(m_doorClosedPrefab, new Vector3(i, 2, j), Quaternion.identity);
+                        Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
+                        roomMaterial = Resources.Load("Materials/DoorMat") as Material;
+                        renderer.material = roomMaterial;
+                    }
+                    else if (m_logicGrid.GetDoorwayStatusAt(i, j) == Room.DoorStatusType.Open)
+                    {
+                        m_floor[i, j] = Instantiate(m_doorOpenPrefab, new Vector3(i, 2, j), Quaternion.identity);
+                        Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
+                        roomMaterial = Resources.Load("Materials/DoorMat") as Material;
+                        renderer.material = roomMaterial;
+                    }
+                    else 
+                    {
+                        m_floor[i, j] = Instantiate(m_tilePrefab, new Vector3(i, 0, j), Quaternion.identity);
+                        Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
+                        roomMaterial = Resources.Load("Materials/RoomMat") as Material;
+                        renderer.material = roomMaterial;
+                    }
+                    
                 }
                 else if (m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.Wall)
                 {
@@ -142,8 +165,8 @@ public class Level : MonoBehaviour
         int rndOrd = -1;
         if (rndRoom != null)
         {
-            rndAbs = Random.Range(0, (int)rndRoom.roomRect.width) + (int)rndRoom.roomRect.x;
-            rndOrd = Random.Range(0, (int)rndRoom.roomRect.height) + (int)rndRoom.roomRect.y;
+            rndAbs = Random.Range(0, (int)rndRoom.m_roomRect.width) + (int)rndRoom.m_roomRect.x;
+            rndOrd = Random.Range(0, (int)rndRoom.m_roomRect.height) + (int)rndRoom.m_roomRect.y;
 
             Debug.Log("rndAbs " + rndAbs + " rndOrd " + rndOrd);
         }

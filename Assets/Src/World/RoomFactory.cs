@@ -46,8 +46,8 @@ public class RoomFactory
     /// <param name="savedRoom">room and the envelop that is going to be split.</param>
     public void SaveRoom(Room savedRoom)
     {
-        Rect envelop = savedRoom.envelop;
-        Rect roomRect = savedRoom.roomRect;
+        Rect envelop = savedRoom.m_envelop;
+        Rect roomRect = savedRoom.m_roomRect;
 
         if(!m_envelops.Remove(envelop))
         {

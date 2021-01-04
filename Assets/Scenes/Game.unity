@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 947553529}
   - component: {fileID: 947553526}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: FPSCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -522,4 +522,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 788ee5db0db58c24a8892391212a9ac2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_camera: {fileID: 0}

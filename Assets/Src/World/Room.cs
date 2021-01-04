@@ -4,16 +4,17 @@ using UnityEngine;
 
 public class Room : System.IComparable<Room>
 {
-    public Rect roomRect;
+    public Rect m_roomRect;
 
-    public List<DoorWay> doorWayList;
+    public List<DoorWay> m_doorWayList;
 
-    public bool generated = false;
+    public bool m_generated = false;
 
-    public Rect envelop;
+    public Rect m_envelop;
 
     public enum DoorStatusType
     {
+        None=-1, // Reserved for non doors artifacts.
         Empty = 0,
         Closed,
         Open,
@@ -37,11 +38,11 @@ public class Room : System.IComparable<Room>
     /// <param name="envelope">minimum and maximal area the room could occupy</param>
     public Room(Rect envelope)
     {
-        envelop = envelope;
+        m_envelop = envelope;
 
-        doorWayList = new List<DoorWay>();
+        m_doorWayList = new List<DoorWay>();
 
-        roomRect = new Rect();
+        m_roomRect = new Rect();
 
         Generate();
     }
@@ -56,31 +57,43 @@ public class Room : System.IComparable<Room>
     public void Generate()
     {
         // Allow for bigger rooms when possible.
-        if(envelop.width > Defines.LevelDefines.s_LARGE_ROOM_THRESHOLD)
-            roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH, 
+        if(m_envelop.width > Defines.LevelDefines.s_LARGE_ROOM_THRESHOLD)
+            m_roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH, 
                                           Defines.LevelDefines.s_LARGE_ROOM_MAX_WIDTH);
         else
-            roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH,
+            m_roomRect.width = Random.Range(Defines.LevelDefines.s_ROOM_MIN_WIDTH,
                                           Defines.LevelDefines.s_ROOM_MAX_WIDTH);
-        roomRect.height = Random.Range(Defines.LevelDefines.s_ROOM_MIN_HEIGHT,
+        m_roomRect.height = Random.Range(Defines.LevelDefines.s_ROOM_MIN_HEIGHT,
                                        Defines.LevelDefines.s_ROOM_MAX_HEIGHT);
-        roomRect.x = Random.Range((int)envelop.x, (int)envelop.width);
-        roomRect.y = Random.Range((int)envelop.y, (int)envelop.height);
+        m_roomRect.x = Random.Range((int)m_envelop.x, (int)m_envelop.width);
+        m_roomRect.y = Random.Range((int)m_envelop.y, (int)m_envelop.height);
 
         // Force the maximal area by minimizing the height.
-        if(roomRect.width * roomRect.height > Defines.LevelDefines.s_ROOM_MAX_AREA)
+        if(m_roomRect.width * m_roomRect.height > Defines.LevelDefines.s_ROOM_MAX_AREA)
         {
-            roomRect.height = Defines.LevelDefines.s_ROOM_MAX_AREA / (int)roomRect.width;
+            m_roomRect.height = Defines.LevelDefines.s_ROOM_MAX_AREA / (int)m_roomRect.width;
         }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public DoorStatusType GetDoorwayStatusAt(int x, int y)
+    {
+        for (int i = 0; i < m_doorWayList.Count; i++)
+        {
+            if (m_doorWayList[i].position == new Vector2(x, y))
+                return m_doorWayList[i].status;
+        }
+        return DoorStatusType.None;
     }
 
     //-----------------------------------------------------------------------------------------------------------------
 
     public int CompareTo(Room compareRoom)
     {
-        if (roomRect.x < compareRoom.roomRect.x)
+        if (m_roomRect.x < compareRoom.m_roomRect.x)
             return -1;
-        else if (roomRect.x > compareRoom.roomRect.x)
+        else if (m_roomRect.x > compareRoom.m_roomRect.x)
             return 1;
         else
             return 0;
@@ -97,10 +110,10 @@ public class Room : System.IComparable<Room>
         // A door can be created in any of the four walls of this room.
         int direction = Random.Range(0, 4);
 
-        int abscissa = (int)roomRect.x;
-        int ordinate = (int)roomRect.y;
-        int roomWidth = (int)roomRect.width;
-        int roomHeight = (int)roomRect.height;
+        int abscissa = (int)m_roomRect.x;
+        int ordinate = (int)m_roomRect.y;
+        int roomWidth = (int)m_roomRect.width;
+        int roomHeight = (int)m_roomRect.height;
         Vector2 newDoor = new Vector2(-1, -1);
 
         switch (direction)
@@ -131,30 +144,34 @@ public class Room : System.IComparable<Room>
     //-----------------------------------------------------------------------------------------------------------------
     /// <summary>
     /// Generates either a hidden door, closed door or a doorway. If a door is generated it is maked either locked or "open".
-    /// TODO : enter actual probabilties here.
+    /// Probabilites : 
+    ///    - 2/3         : 66% of no door appearing at all.
+    ///    - 1/3*4/5*5/6 : 22.22% Closed Door
+    ///    - 1/3*1/5     : 6.66% Door is open
+    ///    - 1/3*4/5*1/6 : 4.44% locked Door
     /// </summary>
     /// <param name="x">abscissa of the doorway.</param>
     /// <param name="y">ordinate of the doorway.</param>
     public void AddDoorway(Vector2 doorWay)
     {
-        if(RnG.PassTest(1,3))
+        if(RnG.PassTest(2,3))
         {
             if(RnG.PassTest(1,5))
-                doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Open));
+                m_doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Open));
             else if(RnG.PassTest(1, 6))
-                doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Locked));
+                m_doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Locked));
             else
-                doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Closed));
+                m_doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Closed));
             // Trapped doors would be here.
         }
         else
-            doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Open));
+            m_doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Empty));
     }
 
     //-----------------------------------------------------------------------------------------------------------------
 
-    public static string operator +(string s, Room a) => s + "\n x : " + a.roomRect.x + ", y : " + a.roomRect.y
-                                                           + ", w : " + a.roomRect.width + ", h : " + a.roomRect.height;
+    public static string operator +(string s, Room a) => s + "\n x : " + a.m_roomRect.x + ", y : " + a.m_roomRect.y
+                                                           + ", w : " + a.m_roomRect.width + ", h : " + a.m_roomRect.height;
     //-----------------------------------------------------------------------------------------------------------------
 
 }

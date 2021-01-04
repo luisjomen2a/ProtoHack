@@ -10,6 +10,8 @@ public class Player : MonoBehaviour
 
     public Vector2 position;
 
+    public int playerHeight = 1;
+
     public void Generate()
     {
         m_playerPrefab = Resources.Load("Prefabs/player") as GameObject;
@@ -31,7 +33,7 @@ public class Player : MonoBehaviour
 
         if(m_generated)
         {
-            m_playerPrefab.transform.position = new Vector3(position.x, 1, position.y) ;
+            m_playerPrefab.transform.position = new Vector3(position.x, playerHeight, position.y) ;
         }
     }
 
