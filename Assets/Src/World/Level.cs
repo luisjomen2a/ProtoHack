@@ -102,20 +102,27 @@ public class Level : MonoBehaviour
                     renderer.material = roomMaterial;
                 }
                 else if(m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.DoorWay)
-                {
-                    
+                { 
+                    float rotY = 0;
+                    //Find which way is the doorway facing. ( We are certain that we can't exceed levels bounds so no
+                    // testing is needed.
+                    if(m_logicGrid.GetTerrainAt(i, j-1) == TerrainGrid.TerrainType.Wall)
+                    {
+                        rotY = 90;
+                    }
+
                     Material roomMaterial;
                     if (m_logicGrid.GetDoorwayStatusAt(i,j) == Room.DoorStatusType.Closed ||
                        m_logicGrid.GetDoorwayStatusAt(i, j) == Room.DoorStatusType.Locked)
                     {
-                        m_floor[i, j] = Instantiate(m_doorClosedPrefab, new Vector3(i, 2, j), Quaternion.identity);
+                        m_floor[i, j] = Instantiate(m_doorClosedPrefab, new Vector3(i, 2, j), Quaternion.Euler(0, rotY, 0));
                         Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
                         roomMaterial = Resources.Load("Materials/DoorMat") as Material;
                         renderer.material = roomMaterial;
                     }
                     else if (m_logicGrid.GetDoorwayStatusAt(i, j) == Room.DoorStatusType.Open)
                     {
-                        m_floor[i, j] = Instantiate(m_doorOpenPrefab, new Vector3(i, 2, j), Quaternion.identity);
+                        m_floor[i, j] = Instantiate(m_doorOpenPrefab, new Vector3(i, 2, j), Quaternion.Euler(0, rotY, 0));
                         Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
                         roomMaterial = Resources.Load("Materials/DoorMat") as Material;
                         renderer.material = roomMaterial;
@@ -124,7 +131,10 @@ public class Level : MonoBehaviour
                     {
                         m_floor[i, j] = Instantiate(m_tilePrefab, new Vector3(i, 0, j), Quaternion.identity);
                         Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
-                        roomMaterial = Resources.Load("Materials/RoomMat") as Material;
+                        if (m_logicGrid.GetStatusAt(i, j) == TerrainGrid.StatusType.Lit)
+                            roomMaterial = Resources.Load("Materials/RoomMatLit") as Material;
+                        else
+                            roomMaterial = Resources.Load("Materials/RoomMat") as Material;
                         renderer.material = roomMaterial;
                     }
                     
@@ -177,9 +187,15 @@ public class Level : MonoBehaviour
 
     public bool WalkableAt(int x, int y)
     {
-        return m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.Wall &&
+        bool isNotWall = m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.Wall &&
             m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.WallOuter &&
             m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.None;
+
+        bool isNotAClosedDoor = m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.DoorWay ||
+                (m_logicGrid.GetDoorwayStatusAt(x, y) != Room.DoorStatusType.Closed &&
+                m_logicGrid.GetDoorwayStatusAt(x, y) != Room.DoorStatusType.Locked);
+
+        return isNotWall && isNotAClosedDoor;
     }
 
     //-----------------------------------------------------------------------------------------------------------------
