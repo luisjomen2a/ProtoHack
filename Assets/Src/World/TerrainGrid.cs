@@ -487,20 +487,22 @@ public class TerrainGrid
         }
 
         // Then find which will be the tiles that are lit.
-        Vector3 origin = new Vector3(x, 0, y);
+        Vector3 origin = new Vector3(x+0.5f, 0, y+ 0.5f);
         for (float angle = 0; angle <= 360; angle += 5f)
         {
             Vector3 lDirection = new Vector3(Mathf.Sin(Mathf.Deg2Rad * angle), 0, Mathf.Cos(Mathf.Deg2Rad * angle));
 
             Ray ray = new Ray(origin, lDirection);
-
-            TraceRay(ray);
+            
+            // We need a bit more of reach for angular tiles.
+            // For filled doorways this shouldn't be the case.
+            TraceRay(ray, angle == 45 || angle == 135 || angle == 315);
         }
     }
 
     //-----------------------------------------------------------------------------------------------------------------
     // TODO : documentation + constant setting.
-    public void TraceRay(Ray ray)
+    public void TraceRay(Ray ray, bool diagonal = false)
     {
         float distance = 0;
         bool wallFound = false;
@@ -531,8 +533,12 @@ public class TerrainGrid
             {
                 corridorCount = 0;
             }
+
+            // We need a bit more of reach for angular tiles.
+            float maxDistance = diagonal ? 2.1f : 2.0f;
+
             // Corridors are only lit if they are next to the player
-            if (isCorridor && distance < 2f)
+            if (isCorridor && distance < maxDistance)
                 m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = LightStatusType.Lit;
             if (wallFound && corridorCount < 1)// Light walls
                 m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = LightStatusType.Lit;
