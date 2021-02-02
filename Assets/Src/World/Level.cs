@@ -77,7 +77,7 @@ public class Level : MonoBehaviour
         {
             for (int j = 0; j < m_floor.GetLength(1); j++)
             {
-                if(m_logicGrid.GetStatusAt(i, j) == TerrainGrid.StatusType.Unexplored || 
+                if(m_logicGrid.GetStatusAt(i, j) == TerrainGrid.LightStatusType.Unexplored || 
                    m_logicGrid.GetTerrainAt(i, j) == TerrainGrid.TerrainType.None)
                 {
                     m_floor[i, j] = Instantiate(m_wallPrefab, new Vector3(i, 2, j), Quaternion.identity);
@@ -95,7 +95,7 @@ public class Level : MonoBehaviour
                     Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
 
                     Material roomMaterial;
-                    if(m_logicGrid.GetStatusAt(i, j) == TerrainGrid.StatusType.Lit)
+                    if(m_logicGrid.GetStatusAt(i, j) == TerrainGrid.LightStatusType.Lit)
                         roomMaterial = Resources.Load("Materials/RoomMatLit") as Material;
                     else
                         roomMaterial = Resources.Load("Materials/RoomMat") as Material;
@@ -131,7 +131,7 @@ public class Level : MonoBehaviour
                     {
                         m_floor[i, j] = Instantiate(m_tilePrefab, new Vector3(i, 0, j), Quaternion.identity);
                         Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
-                        if (m_logicGrid.GetStatusAt(i, j) == TerrainGrid.StatusType.Lit)
+                        if (m_logicGrid.GetStatusAt(i, j) == TerrainGrid.LightStatusType.Lit)
                             roomMaterial = Resources.Load("Materials/RoomMatLit") as Material;
                         else
                             roomMaterial = Resources.Load("Materials/RoomMat") as Material;
@@ -196,6 +196,22 @@ public class Level : MonoBehaviour
                 m_logicGrid.GetDoorwayStatusAt(x, y) != Room.DoorStatusType.Locked);
 
         return isNotWall && isNotAClosedDoor;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public int OpenAt(int x, int y)
+    {
+        // Only closed and locked doors are available for openning.
+        if (m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.DoorWay)
+            return -1;
+        else if (m_logicGrid.GetDoorwayStatusAt(x, y) == Room.DoorStatusType.Closed)
+        { 
+            m_logicGrid.OpenAt(x, y);
+            return (int)Room.DoorStatusType.Closed;
+        }
+        
+        return (int)m_logicGrid.GetDoorwayStatusAt(x, y);
     }
 
     //-----------------------------------------------------------------------------------------------------------------

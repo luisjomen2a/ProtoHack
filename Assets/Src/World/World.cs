@@ -6,6 +6,8 @@ public class World : MonoBehaviour
 {
     private Level m_level;
 
+    private bool m_isGenerated = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -16,17 +18,17 @@ public class World : MonoBehaviour
     void Update()
     {
         if (Input.GetKeyUp(KeyCode.S))
+        {   
             m_level.Generate();
+            m_isGenerated = true;
+        }
         if (Input.GetKeyUp(KeyCode.R))
             m_level.Clear(true);
         if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.F))
             m_level.Reveal();
     }
 
-    public void Create()
-    {
-        m_level.Generate();
-    }
+    //-----------------------------------------------------------------------------------------------------------------
 
     public Vector2 PlacePlayer()
     {
@@ -48,5 +50,17 @@ public class World : MonoBehaviour
     public void UpdateExplored(int x, int j)
     {
         m_level.UpdateExplored(x, j);
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    public bool IsGenerated()
+    {
+        return m_isGenerated;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    public int OpenAt(int x, int y)
+    {
+        return m_level.OpenAt(x, y);
     }
 }

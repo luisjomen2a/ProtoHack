@@ -10,6 +10,8 @@ public class PlayerMovement : MonoBehaviour
 
     private Camera m_camera;
 
+    private PlayerInteraction m_playerInteraction;
+
     private bool m_isMoving = false;
 
     private int m_cameraHeight = 15;
@@ -25,12 +27,15 @@ public class PlayerMovement : MonoBehaviour
 
         // there should be only one player camera in the game.
         m_camera = gameObject.GetComponent<Camera>();
+
+        // there should be only one player interaction script in the game.
+        m_playerInteraction = gameObject.GetComponent<PlayerInteraction>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (m_isMoving)
+        if (m_isMoving || !m_world.IsGenerated() || m_playerInteraction.IsWaitingDirection())
             return;
 
         if (Input.GetKeyUp(KeyCode.Keypad1))

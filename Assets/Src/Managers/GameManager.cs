@@ -12,6 +12,8 @@ public class GameManager : MonoBehaviour
 
     public Light m_playerLight;
 
+    public HUDManager m_HUDManager;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -21,6 +23,9 @@ public class GameManager : MonoBehaviour
         m_camera.enabled = false;
 
         m_player.Generate();
+
+        //Initialize HUD.
+        m_HUDManager = gameObject.AddComponent(typeof(HUDManager)) as HUDManager;
     }
 
     // Update is called once per frame

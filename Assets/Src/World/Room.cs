@@ -14,7 +14,7 @@ public class Room : System.IComparable<Room>
 
     public enum DoorStatusType
     {
-        None=-1, // Reserved for non doors artifacts.
+        None=-1, // Reserved for non doors artifacts. Theorically, every none-doorway tile is of None type
         Empty = 0,
         Closed,
         Open,
@@ -85,6 +85,21 @@ public class Room : System.IComparable<Room>
                 return m_doorWayList[i].status;
         }
         return DoorStatusType.None;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public bool SetDoorwayStatusAt(int x, int y, DoorStatusType doorStatus)
+    {
+        for (int i = 0; i < m_doorWayList.Count; i++)
+        {
+            if (m_doorWayList[i].position == new Vector2(x, y))
+            {
+                m_doorWayList[i] = new DoorWay(m_doorWayList[i].position, doorStatus);
+                return true;
+            }
+        }
+        return false;
     }
 
     //-----------------------------------------------------------------------------------------------------------------

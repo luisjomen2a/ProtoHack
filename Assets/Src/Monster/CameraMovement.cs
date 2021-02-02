@@ -4,16 +4,10 @@ using UnityEngine;
 
 public class CameraMovement : MonoBehaviour
 {
-    Camera m_cam;
     bool m_isCameraMoving;
 
     Vector3 position;
-    // Start is called before the first frame update
-    void Start()
-    {
-        m_cam = GetComponent<Camera>();
-    }
-
+ 
     // Update is called once per frame
     void Update()
     {

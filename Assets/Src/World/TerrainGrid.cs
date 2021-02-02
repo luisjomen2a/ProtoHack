@@ -17,7 +17,7 @@ public class TerrainGrid
         WallOuter // "Imaginary" wall that ensure rooms won't be generated one next to the other
     }
 
-    public enum StatusType
+    public enum LightStatusType
     {
         Unexplored,
         Explored,
@@ -28,7 +28,7 @@ public class TerrainGrid
     public int height;
 
     private TerrainType[,] m_terrainGrid;
-    private StatusType[,] m_statusGrid;
+    private LightStatusType[,] m_statusGrid;
 
     private List<Room> m_roomList;
 
@@ -38,7 +38,7 @@ public class TerrainGrid
         this.height = height;
 
         m_terrainGrid = new TerrainType[width, height];
-        m_statusGrid = new StatusType[width, height];
+        m_statusGrid = new LightStatusType[width, height];
         m_roomList = new List<Room>();
 
         // The level is created empty (aka. all tiles have no type).
@@ -48,7 +48,7 @@ public class TerrainGrid
 
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
-                m_statusGrid[i, j] = StatusType.Unexplored;
+                m_statusGrid[i, j] = LightStatusType.Unexplored;
     }
 
     //-----------------------------------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ public class TerrainGrid
 
     //-----------------------------------------------------------------------------------------------------------------
 
-    public StatusType GetStatusAt(int x, int y)
+    public LightStatusType GetStatusAt(int x, int y)
     {
         return m_statusGrid[x, y];
     }
@@ -75,6 +75,20 @@ public class TerrainGrid
             }
         }
         return Room.DoorStatusType.None;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+
+    public bool OpenAt(int x, int y)
+    {
+        for (int i = 0; i < m_roomList.Count; i++)
+        {
+            if (m_roomList[i].SetDoorwayStatusAt(x, y, Room.DoorStatusType.Open))
+            {
+                return true;
+            }
+        }
+        return false;
     }
     //-----------------------------------------------------------------------------------------------------------------
 
@@ -467,8 +481,8 @@ public class TerrainGrid
         {
             for (int j = 0; j < m_statusGrid.GetLength(1); j++)
             {
-                if (m_statusGrid[i, j] == StatusType.Lit)
-                    m_statusGrid[i, j] = StatusType.Explored;
+                if (m_statusGrid[i, j] == LightStatusType.Lit)
+                    m_statusGrid[i, j] = LightStatusType.Explored;
             }
         }
 
@@ -500,7 +514,11 @@ public class TerrainGrid
 
             if (m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.Wall ||
                m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.None ||
-               m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.WallOuter)
+               m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.WallOuter ||
+               (m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.DoorWay &&
+               (GetDoorwayStatusAt((int)currentPoint.x, (int) currentPoint.z) == Room.DoorStatusType.Closed ||
+                GetDoorwayStatusAt((int)currentPoint.x, (int)currentPoint.z) == Room.DoorStatusType.Locked ))
+               )
             {
                 wallFound = true;
             }
@@ -515,11 +533,14 @@ public class TerrainGrid
             }
             // Corridors are only lit if they are next to the player
             if (isCorridor && distance < 2f)
-                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
+                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = LightStatusType.Lit;
             if (wallFound && corridorCount < 1)// Light walls
-                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
+                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = LightStatusType.Lit;
+            if (!isCorridor && !wallFound 
+                && m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.DoorWay) 
+                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = LightStatusType.Lit; // Doors should still be visible.
             if (!isCorridor && !wallFound) // lit surfaces case.
-                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = StatusType.Lit;
+                m_statusGrid[(int)currentPoint.x, (int)currentPoint.z] = LightStatusType.Lit;
             isCorridor = false;
 
             distance += 1f;
@@ -532,7 +553,7 @@ public class TerrainGrid
     {
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
-                m_statusGrid[i, j] = StatusType.Explored;
+                m_statusGrid[i, j] = LightStatusType.Explored;
     }
 
     //-----------------------------------------------------------------------------------------------------------------
