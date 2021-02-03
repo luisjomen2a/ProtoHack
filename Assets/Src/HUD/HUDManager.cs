@@ -23,6 +23,7 @@ public class HUDManager : MonoBehaviour
         }
     }
 
+    // Updates the prompt with the given message
     public void prompt(string message)
     {
         m_promptText.text = message;

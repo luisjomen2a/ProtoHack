@@ -127,6 +127,14 @@ public class Level : MonoBehaviour
                         roomMaterial = Resources.Load("Materials/DoorMat") as Material;
                         renderer.material = roomMaterial;
                     }
+                    else if (m_logicGrid.GetDoorwayStatusAt(i, j) == Room.DoorStatusType.Hidden) // Hidden doors are just treated as Walls
+                    {
+                        m_floor[i, j] = Instantiate(m_wallPrefab, new Vector3(i, 2, j), Quaternion.identity);
+                        Renderer renderer = m_floor[i, j].GetComponent(typeof(Renderer)) as Renderer;
+
+                        roomMaterial = Resources.Load("Materials/StairsDownMat") as Material;
+                        renderer.material = roomMaterial;
+                    }
                     else 
                     {
                         m_floor[i, j] = Instantiate(m_tilePrefab, new Vector3(i, 0, j), Quaternion.identity);
@@ -135,6 +143,7 @@ public class Level : MonoBehaviour
                             roomMaterial = Resources.Load("Materials/RoomMatLit") as Material;
                         else
                             roomMaterial = Resources.Load("Materials/RoomMat") as Material;
+
                         renderer.material = roomMaterial;
                     }
                     
@@ -193,13 +202,19 @@ public class Level : MonoBehaviour
 
         bool isNotAClosedDoor = m_logicGrid.GetTerrainAt(x, y) != TerrainGrid.TerrainType.DoorWay ||
                 (m_logicGrid.GetDoorwayStatusAt(x, y) != Room.DoorStatusType.Closed &&
-                m_logicGrid.GetDoorwayStatusAt(x, y) != Room.DoorStatusType.Locked);
+                m_logicGrid.GetDoorwayStatusAt(x, y) != Room.DoorStatusType.Locked &&
+                m_logicGrid.GetDoorwayStatusAt(x, y) != Room.DoorStatusType.Hidden);
 
         return isNotWall && isNotAClosedDoor;
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-
+    /// <summary>
+    ///  Calls the open door method at the current level at the given tile. If the door was closed, it opens it. 
+    /// </summary>
+    /// <param name="x">abscissa of the tile of intrest. </param>
+    /// <param name="y">ordinate of the tile of intrest.</param>
+    /// <returns>Status that the tile had while the attempt was made.</returns>
     public int OpenAt(int x, int y)
     {
         // Only closed and locked doors are available for openning.

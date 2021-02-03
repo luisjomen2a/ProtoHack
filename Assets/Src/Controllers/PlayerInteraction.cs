@@ -12,6 +12,8 @@ public class PlayerInteraction : MonoBehaviour
 
     private bool m_waitingDirection = false;
 
+    // TODO : searching should be 12.38% chances of success (1/7).
+
     // Start is called before the first frame update
     void Start()
     {
@@ -37,13 +39,15 @@ public class PlayerInteraction : MonoBehaviour
 
             m_waitingDirection = true;
 
-            StartCoroutine(GetDirection());
+            StartCoroutine(GetOpenDirection());
         }
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-
-    private IEnumerator GetDirection()
+    /// <summary>
+    /// Waits for a key to be pressed and attmpts to open the door at the given direction, if the pressed key is a direction.
+    /// </summary>
+    private IEnumerator GetOpenDirection()
     {
         bool done = false;
         while (!done)
@@ -66,6 +70,11 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Determines if the given key points to a numpad directive.
+    /// </summary>
+    /// <param name="key">Key to check.</param>
+    /// <returns>true if direciton false if not</returns>
     public bool IsDirection(KeyCode key)
     {
         if (key == KeyCode.Keypad1 || key == KeyCode.Keypad2 || key == KeyCode.Keypad3 || key == KeyCode.Keypad4 ||
@@ -76,7 +85,11 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-
+    /// <summary>
+    /// Calls the open world method of the world and then feed the prompt with the appropiate message according to the
+    /// tile that was chosen.
+    /// </summary>
+    /// <param name="key">Direction of the targeted tile.</param>
     public void OpenDoor(KeyCode key)
     {
         int openResult = 0;
@@ -112,7 +125,7 @@ public class PlayerInteraction : MonoBehaviour
         {
             openResult = m_world.OpenAt((int)m_player.position.x + 1, (int)m_player.position.y + 1);
         }
-        if(openResult == (int)Room.DoorStatusType.None)
+        if(openResult == (int)Room.DoorStatusType.None || openResult == (int)Room.DoorStatusType.Hidden)
             m_HUDManager.prompt("You see no door here.");
         if (openResult == (int)Room.DoorStatusType.Closed)
             m_HUDManager.prompt("The door opens.");
@@ -128,7 +141,10 @@ public class PlayerInteraction : MonoBehaviour
     }
 
     //-----------------------------------------------------------------------------------------------------------------
-
+    /// <summary>
+    /// Getter for input locking, useful for blocking player movement.
+    /// </summary>
+    /// <returns>true if the "In What direction" dialogue is on.</returns>
     public bool IsWaitingDirection()
     {
         return m_waitingDirection;

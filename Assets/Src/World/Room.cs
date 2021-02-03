@@ -19,6 +19,7 @@ public class Room : System.IComparable<Room>
         Closed,
         Open,
         Locked,
+        Hidden,
         Trapped
     }
 
@@ -164,12 +165,15 @@ public class Room : System.IComparable<Room>
     ///    - 1/3*4/5*5/6 : 22.22% Closed Door
     ///    - 1/3*1/5     : 6.66% Door is open
     ///    - 1/3*4/5*1/6 : 4.44% locked Door
+
     /// </summary>
     /// <param name="x">abscissa of the doorway.</param>
     /// <param name="y">ordinate of the doorway.</param>
-    public void AddDoorway(Vector2 doorWay)
+    public void AddDoorway(Vector2 doorWay, bool isHidden = false)
     {
-        if(RnG.PassTest(2,3))
+        if(isHidden)
+            m_doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Hidden));
+        else if (RnG.PassTest(2,3))
         {
             if(RnG.PassTest(1,5))
                 m_doorWayList.Add(new DoorWay(doorWay, DoorStatusType.Open));

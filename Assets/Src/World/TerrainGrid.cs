@@ -249,8 +249,9 @@ public class TerrainGrid
             doorWay2 = room2.FindDoorway();
         while (!IsDoorOk(doorWay2));
 
-        room1.AddDoorway(doorWay1);
-        room2.AddDoorway(doorWay2);
+        // Each door has 1 chance out of 8 to be hidden.
+        room1.AddDoorway(doorWay1, Random.Range(0, 8) == 0);
+        room2.AddDoorway(doorWay2, Random.Range(0, 8) == 0);
 
         FillGrid(doorWay1);
         FillGrid(doorWay2);
@@ -315,7 +316,7 @@ public class TerrainGrid
             }
             while (!IsDoorOk(doorWay));
 
-            room.AddDoorway(doorWay);
+            room.AddDoorway(doorWay, Random.Range(0, 5) == 0);
             m_terrainGrid[(int)doorWay.x, (int)doorWay.y] = TerrainType.DoorWay;
 
             // Find which direction should the corridor be put in.
@@ -401,6 +402,7 @@ public class TerrainGrid
     /// <summary>
     /// Adds a door to the logical grid, that grid has to be placed on a wall.
     /// </summary>
+    /// <param name="door">Position of the door .</param>
     /// <param name="door">Position of the door .</param>
     private void FillGrid(Vector2 door)
     {
@@ -519,7 +521,8 @@ public class TerrainGrid
                m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.WallOuter ||
                (m_terrainGrid[(int)currentPoint.x, (int)currentPoint.z] == TerrainType.DoorWay &&
                (GetDoorwayStatusAt((int)currentPoint.x, (int) currentPoint.z) == Room.DoorStatusType.Closed ||
-                GetDoorwayStatusAt((int)currentPoint.x, (int)currentPoint.z) == Room.DoorStatusType.Locked ))
+                GetDoorwayStatusAt((int)currentPoint.x, (int)currentPoint.z) == Room.DoorStatusType.Locked ||
+                GetDoorwayStatusAt((int)currentPoint.x, (int)currentPoint.z) == Room.DoorStatusType.Hidden))
                )
             {
                 wallFound = true;

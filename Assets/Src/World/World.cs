@@ -17,7 +17,7 @@ public class World : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.S))
+        if (Input.GetKeyUp(KeyCode.G))
         {   
             m_level.Generate();
             m_isGenerated = true;
@@ -59,6 +59,12 @@ public class World : MonoBehaviour
     }
 
     //-----------------------------------------------------------------------------------------------------------------
+    /// <summary>
+    ///  Calls the open door method at the current level at the given tile.
+    /// </summary>
+    /// <param name="x">abscissa of the tile of intrest. </param>
+    /// <param name="y">ordinate of the tile of intrest.</param>
+    /// <returns>Status that the tile had while the attempt was made.</returns>
     public int OpenAt(int x, int y)
     {
         return m_level.OpenAt(x, y);
